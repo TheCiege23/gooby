@@ -123,6 +123,7 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <RecentlyViewedTracker productId={productId} user={user} />
       {/* Back */}
       <Link to={createPageUrl("Browse")} className="inline-flex items-center text-gray-600 hover:text-blue-600 mb-6">
         <ArrowLeft className="w-4 h-4 mr-2" />
