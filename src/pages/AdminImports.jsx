@@ -154,6 +154,7 @@ export default function AdminImports() {
 
       {activeSection === "flagged" && <FlaggedProductsPanel />}
       {activeSection === "verification" && <SellerVerificationPanel />}
+      {activeSection === "coresight" && <CoresightImportPanel />}
 
       {activeSection === "imports" && importResult && (
         <Card className="p-4 mb-6 bg-green-50 border-green-200">
