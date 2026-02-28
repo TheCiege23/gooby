@@ -40,17 +40,30 @@ export default function Browse() {
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedState, setSelectedState] = useState("");
   const [locationFilter, setLocationFilter] = useState(urlParams.get('location') || '');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [minDiscount, setMinDiscount] = useState(0);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('proximity');
   const [viewMode, setViewMode] = useState('products');
   const [user, setUser] = useState(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [savedProducts, setSavedProducts] = useState([]);
+  const [userLat, setUserLat] = useState(40.4594);
+  const [userLng, setUserLng] = useState(-74.3608);
 
   useEffect(() => {
     loadUser();
+    // Try to get user's actual location
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        setUserLat(pos.coords.latitude);
+        setUserLng(pos.coords.longitude);
+      },
+      () => {
+        // Default to Sayreville, NJ
+      }
+    );
   }, []);
 
   const loadUser = async () => {
@@ -85,6 +98,16 @@ export default function Browse() {
     { label: "Other", value: "other" },
   ];
 
+  const calculateDistance = (lat, lng) => {
+    if (!lat || !lng) return Infinity;
+    const R = 3959;
+    const dLat = ((lat - userLat) * Math.PI) / 180;
+    const dLng = ((lng - userLng) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((userLat * Math.PI) / 180) * Math.cos((lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || 
       product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -106,9 +129,17 @@ export default function Browse() {
       store?.state?.toLowerCase().includes(loc) ||
       store?.zip_code?.includes(loc);
 
-    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation;
-  }).sort((a, b) => {
+    // State filter
+    const matchesState = !selectedState || store?.state === selectedState;
+
+    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState;
+  }).map(p => ({
+    ...p,
+    distance: calculateDistance(storeMap[p.store_id]?.latitude, storeMap[p.store_id]?.longitude)
+  })).sort((a, b) => {
     switch (sortBy) {
+      case 'proximity':
+        return a.distance - b.distance;
       case 'price_low':
         return a.sale_price - b.sale_price;
       case 'price_high':
@@ -133,7 +164,15 @@ export default function Browse() {
       store.state?.toLowerCase().includes(loc) ||
       store.zip_code?.includes(loc);
 
-    return matchesSearch && matchesCategory && matchesLocation;
+    const matchesState = !selectedState || store.state === selectedState;
+
+    return matchesSearch && matchesCategory && matchesLocation && matchesState;
+  }).map(s => ({
+    ...s,
+    distance: calculateDistance(s.latitude, s.longitude)
+  })).sort((a, b) => {
+    if (sortBy === 'proximity') return a.distance - b.distance;
+    return 0;
   });
 
   const storeMap = stores.reduce((acc, store) => {
@@ -155,12 +194,13 @@ export default function Browse() {
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('');
+    setSelectedState('');
     setLocationFilter('');
     setPriceRange([0, 1000]);
     setMinDiscount(0);
   };
 
-  const hasActiveFilters = searchQuery || selectedCategory || locationFilter || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
+  const hasActiveFilters = searchQuery || selectedCategory || selectedState || locationFilter || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -235,10 +275,24 @@ export default function Browse() {
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="proximity">Nearest First</SelectItem>
             <SelectItem value="newest">Newest First</SelectItem>
             <SelectItem value="price_low">Price: Low to High</SelectItem>
             <SelectItem value="price_high">Price: High to Low</SelectItem>
             <SelectItem value="discount">Biggest Discount</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedState} onValueChange={setSelectedState}>
+          <SelectTrigger className="w-full md:w-40 h-12 rounded-xl">
+            <SelectValue placeholder="State" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>All States</SelectItem>
+            <SelectItem value="NY">New York</SelectItem>
+            <SelectItem value="NJ">New Jersey</SelectItem>
+            <SelectItem value="CT">Connecticut</SelectItem>
+            <SelectItem value="PA">Pennsylvania</SelectItem>
           </SelectContent>
         </Select>
 
@@ -319,6 +373,12 @@ export default function Browse() {
             <Badge variant="secondary" className="rounded-full pl-3">
               {categories.find(c => c.value === selectedCategory)?.label}
               <button onClick={() => setSelectedCategory('')} className="ml-2"><X className="w-3 h-3" /></button>
+            </Badge>
+          )}
+          {selectedState && (
+            <Badge variant="secondary" className="rounded-full pl-3">
+              {selectedState}
+              <button onClick={() => setSelectedState('')} className="ml-2"><X className="w-3 h-3" /></button>
             </Badge>
           )}
           {locationFilter && (
