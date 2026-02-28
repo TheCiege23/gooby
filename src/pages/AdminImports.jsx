@@ -33,6 +33,7 @@ import CoresightImportPanel from "@/components/admin/CoresightImportPanel";
 import SafeGraphUploadPanel from "@/components/admin/SafeGraphUploadPanel";
 import OverpassPanel from "@/components/admin/OverpassPanel";
 import WebSearchPanel from "@/components/admin/WebSearchPanel";
+import GovFilingsPanel from "@/components/admin/GovFilingsPanel";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
