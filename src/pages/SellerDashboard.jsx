@@ -66,6 +66,7 @@ export default function SellerDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <PaymentNotification />
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -97,6 +98,10 @@ export default function SellerDashboard() {
           <TabsTrigger value="store" className="rounded-lg">
             <Settings className="w-4 h-4 mr-2" />
             Store Details
+          </TabsTrigger>
+          <TabsTrigger value="billing" className="rounded-lg">
+            <CreditCard className="w-4 h-4 mr-2" />
+            Billing
           </TabsTrigger>
         </TabsList>
 
