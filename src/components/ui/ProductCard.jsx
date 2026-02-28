@@ -4,7 +4,8 @@ import { createPageUrl } from "@/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Tag } from "lucide-react";
+import { Heart, MapPin, Tag, ShieldCheck } from "lucide-react";
+import FlagListingButton from "@/components/moderation/FlagListingButton";
 
 export default function ProductCard({ product, store, onSave, isSaved }) {
   const discountPercent = product.discount_percent || 
@@ -88,11 +89,14 @@ export default function ProductCard({ product, store, onSave, isSaved }) {
             )}
           </div>
 
-          {product.condition && product.condition !== "new" && (
-            <Badge variant="outline" className="mt-2 text-xs capitalize">
-              {product.condition.replace("_", " ")}
-            </Badge>
-          )}
+          <div className="flex items-center justify-between mt-2">
+            {product.condition && product.condition !== "new" && (
+              <Badge variant="outline" className="text-xs capitalize">
+                {product.condition.replace("_", " ")}
+              </Badge>
+            )}
+            <FlagListingButton productId={product.id} className="ml-auto" />
+          </div>
         </div>
       </Link>
     </Card>
