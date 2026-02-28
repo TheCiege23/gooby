@@ -22,6 +22,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
 import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
 import NearbyClosure from "@/components/buyer/NearbyClosure";
+import BetaSignupForm from "@/components/buyer/BetaSignupForm";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -244,6 +245,26 @@ export default function Home() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Beta Signup Section */}
+      <section className="py-16 px-4 sm:px-6 bg-gradient-to-b from-white to-blue-50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold mb-4">
+              <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+              Now Expanding to More Areas
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Be First in Your Area
+            </h2>
+            <p className="text-lg text-gray-600">
+              Join our exclusive beta program in Sayreville, NJ and be among the first to discover incredible deals from closing stores.
+            </p>
+          </div>
+
+          <BetaSignupForm />
+        </div>
       </section>
 
       {/* CTA Section */}
