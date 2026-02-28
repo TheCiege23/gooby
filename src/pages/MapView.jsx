@@ -27,11 +27,31 @@ function loadGoogleMapsScript() {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=maps,marker&v=beta`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=maps,marker,places&v=beta`;
     script.async = true;
     script.setAttribute('data-gm-script', 'true');
     script.onload = resolve;
     document.head.appendChild(script);
+  });
+}
+
+function loadExtendedComponents() {
+  return new Promise((resolve) => {
+    if (customElements.get('gmpx-place-picker')) return resolve();
+    const existing = document.querySelector('script[data-gmpx-script]');
+    if (existing) { existing.addEventListener('load', resolve); return; }
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = "https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js";
+    script.setAttribute('data-gmpx-script', 'true');
+    script.onload = resolve;
+    document.head.appendChild(script);
+
+    // Also inject the API loader element once
+    const loader = document.createElement('gmpx-api-loader');
+    loader.setAttribute('key', GOOGLE_MAPS_API_KEY);
+    loader.setAttribute('solution-channel', 'GMP_GE_placepicker_v2');
+    document.body.appendChild(loader);
   });
 }
 
