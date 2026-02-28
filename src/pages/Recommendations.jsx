@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, MapPin, Tag, Loader2, RefreshCw, ArrowRight } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
+import DailyDigestPanel from "@/components/buyer/DailyDigestPanel";
 
 export default function Recommendations() {
   const [user, setUser] = useState(null);
