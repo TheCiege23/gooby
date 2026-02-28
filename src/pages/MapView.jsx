@@ -99,9 +99,12 @@ export default function MapView() {
 
   const getProductCount = (storeId) => products.filter(p => p.store_id === storeId).length;
 
-  // Initialize Google Map
+  // Initialize Google Map + Extended Components
   useEffect(() => {
-    loadGoogleMapsScript().then(() => setMapReady(true));
+    Promise.all([loadGoogleMapsScript(), loadExtendedComponents()]).then(() => {
+      setMapReady(true);
+      setGmpxReady(true);
+    });
   }, []);
 
   useEffect(() => {
