@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, Loader2, Upload, Package, X, Store, AlertTriangle } from "lucide-react";
 import SimpleCaptcha from "@/components/moderation/SimpleCaptcha";
-import { base44 } from "@/api/base44Client";
 
 const CATEGORIES = [
   { label: "Clothing", value: "clothing" },

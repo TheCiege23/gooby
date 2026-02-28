@@ -191,6 +191,7 @@ export default function AdminImports() {
           <p className="text-sm mt-1">Click "Run Import" to fetch closing stores from Google Places.</p>
         </div>
       ) : activeSection === "imports" ? (
+        importedStores.length === 0 ? null :
         <div className="space-y-3">
           {importedStores.map((store) => (
             <Card key={store.id} className="p-4">
