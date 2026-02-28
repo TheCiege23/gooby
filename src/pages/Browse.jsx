@@ -1,0 +1,398 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { 
+  Search, 
+  SlidersHorizontal, 
+  X,
+  Grid3X3,
+  List,
+  Store,
+  MapPin
+} from "lucide-react";
+import ProductCard from "@/components/ui/ProductCard";
+import StoreCard from "@/components/ui/StoreCard";
+
+export default function Browse() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialSearch = urlParams.get('search') || '';
+  const initialCategory = urlParams.get('category') || '';
+
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [minDiscount, setMinDiscount] = useState(0);
+  const [sortBy, setSortBy] = useState('newest');
+  const [viewMode, setViewMode] = useState('products');
+  const [user, setUser] = useState(null);
+  const [savedProducts, setSavedProducts] = useState([]);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    const authenticated = await base44.auth.isAuthenticated();
+    if (authenticated) {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setSavedProducts(currentUser.saved_products || []);
+    }
+  };
+
+  const { data: products = [], isLoading: loadingProducts } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.filter({ is_available: true }),
+  });
+
+  const { data: stores = [], isLoading: loadingStores } = useQuery({
+    queryKey: ['stores'],
+    queryFn: () => base44.entities.Store.filter({ is_active: true }),
+  });
+
+  const categories = [
+    { label: "All Categories", value: "" },
+    { label: "Clothing", value: "clothing" },
+    { label: "Electronics", value: "electronics" },
+    { label: "Furniture", value: "furniture" },
+    { label: "Home Goods", value: "home_goods" },
+    { label: "Sports", value: "sports" },
+    { label: "Books", value: "books" },
+    { label: "Jewelry", value: "jewelry" },
+    { label: "Toys", value: "toys" },
+    { label: "Other", value: "other" },
+  ];
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = !searchQuery || 
+      product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    
+    const matchesPrice = product.sale_price >= priceRange[0] && product.sale_price <= priceRange[1];
+    
+    const discount = product.discount_percent || 
+      (product.original_price ? Math.round(((product.original_price - product.sale_price) / product.original_price) * 100) : 0);
+    const matchesDiscount = discount >= minDiscount;
+
+    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'price_low':
+        return a.sale_price - b.sale_price;
+      case 'price_high':
+        return b.sale_price - a.sale_price;
+      case 'discount':
+        return (b.discount_percent || 0) - (a.discount_percent || 0);
+      default:
+        return new Date(b.created_date) - new Date(a.created_date);
+    }
+  });
+
+  const filteredStores = stores.filter(store => {
+    const matchesSearch = !searchQuery || 
+      store.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      store.city?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || store.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const storeMap = stores.reduce((acc, store) => {
+    acc[store.id] = store;
+    return acc;
+  }, {});
+
+  const handleSaveProduct = async (productId) => {
+    if (!user) return;
+    
+    const newSaved = savedProducts.includes(productId)
+      ? savedProducts.filter(id => id !== productId)
+      : [...savedProducts, productId];
+    
+    setSavedProducts(newSaved);
+    await base44.auth.updateMe({ saved_products: newSaved });
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('');
+    setPriceRange([0, 1000]);
+    setMinDiscount(0);
+  };
+
+  const hasActiveFilters = searchQuery || selectedCategory || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Browse Deals</h1>
+        <p className="text-gray-500 mt-2">Find amazing discounts from closing stores</p>
+      </div>
+
+      {/* Search & Filters Bar */}
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search products or stores..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 h-12 rounded-xl border-gray-200"
+          />
+        </div>
+
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-full md:w-48 h-12 rounded-xl">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map(cat => (
+              <SelectItem key={cat.value} value={cat.value}>
+                {cat.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full md:w-48 h-12 rounded-xl">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="price_low">Price: Low to High</SelectItem>
+            <SelectItem value="price_high">Price: High to Low</SelectItem>
+            <SelectItem value="discount">Biggest Discount</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Mobile Filters */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="h-12 rounded-xl md:hidden">
+              <SlidersHorizontal className="w-5 h-5 mr-2" />
+              Filters
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Filters</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6 space-y-6">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Price Range</label>
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  max={1000}
+                  step={10}
+                  className="mt-4"
+                />
+                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                  <span>${priceRange[0]}</span>
+                  <span>${priceRange[1]}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Minimum Discount</label>
+                <Slider
+                  value={[minDiscount]}
+                  onValueChange={(v) => setMinDiscount(v[0])}
+                  max={90}
+                  step={10}
+                  className="mt-4"
+                />
+                <p className="text-sm text-gray-500 mt-2">{minDiscount}% or more</p>
+              </div>
+
+              <Button onClick={clearFilters} variant="outline" className="w-full">
+                Clear Filters
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* View Toggle & Active Filters */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'products' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('products')}
+            className="rounded-full"
+          >
+            <Grid3X3 className="w-4 h-4 mr-2" />
+            Products
+          </Button>
+          <Button
+            variant={viewMode === 'stores' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('stores')}
+            className="rounded-full"
+          >
+            <Store className="w-4 h-4 mr-2" />
+            Stores
+          </Button>
+        </div>
+
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {selectedCategory && (
+              <Badge variant="secondary" className="rounded-full pl-3">
+                {categories.find(c => c.value === selectedCategory)?.label}
+                <button onClick={() => setSelectedCategory('')} className="ml-2">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+            {minDiscount > 0 && (
+              <Badge variant="secondary" className="rounded-full pl-3">
+                {minDiscount}%+ off
+                <button onClick={() => setMinDiscount(0)} className="ml-2">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-blue-600">
+              Clear all
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Sidebar Filters */}
+      <div className="flex gap-8">
+        <div className="hidden md:block w-64 flex-shrink-0">
+          <div className="sticky top-24 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-semibold mb-4">Filters</h3>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="text-sm font-medium mb-3 block">Price Range</label>
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  max={1000}
+                  step={10}
+                />
+                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                  <span>${priceRange[0]}</span>
+                  <span>${priceRange[1]}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-3 block">Minimum Discount</label>
+                <Slider
+                  value={[minDiscount]}
+                  onValueChange={(v) => setMinDiscount(v[0])}
+                  max={90}
+                  step={10}
+                />
+                <p className="text-sm text-gray-500 mt-2">{minDiscount}% or more</p>
+              </div>
+
+              {hasActiveFilters && (
+                <Button onClick={clearFilters} variant="outline" className="w-full">
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Results Grid */}
+        <div className="flex-1">
+          {viewMode === 'products' ? (
+            <>
+              <p className="text-sm text-gray-500 mb-4">
+                {filteredProducts.length} products found
+              </p>
+              
+              {loadingProducts ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
+                  ))}
+                </div>
+              ) : filteredProducts.length > 0 ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      store={storeMap[product.store_id]}
+                      onSave={user ? handleSaveProduct : null}
+                      isSaved={savedProducts.includes(product.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">No products found</h3>
+                  <p className="text-gray-500 mt-2">Try adjusting your filters or search terms</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 mb-4">
+                {filteredStores.length} stores found
+              </p>
+              
+              {loadingStores ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-64 bg-gray-100 rounded-2xl animate-pulse" />
+                  ))}
+                </div>
+              ) : filteredStores.length > 0 ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {filteredStores.map((store) => (
+                    <StoreCard key={store.id} store={store} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Store className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">No stores found</h3>
+                  <p className="text-gray-500 mt-2">Try adjusting your filters or search terms</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
