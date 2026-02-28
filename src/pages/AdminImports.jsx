@@ -308,24 +308,44 @@ export default function AdminImports() {
           </div>
         ) : (
           <div className="space-y-3">
-          {importedStores.map((store) => (
-            <Card key={store.id} className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-gray-900">{store.name}</h3>
-                    <Badge className={STATUS_COLORS[store.status] || ""}>
-                      {store.status}
-                    </Badge>
-                    {store.business_status && (
-                      <Badge className={BUSINESS_STATUS_COLORS[store.business_status] || "bg-gray-100 text-gray-700"}>
-                        {store.business_status.replace(/_/g, " ")}
-                      </Badge>
-                    )}
-                    {store.email_sent && (
-                      <Badge className="bg-purple-100 text-purple-700">Email Sent</Badge>
-                    )}
-                  </div>
+           {importedStores.map((store) => (
+             <Card key={store.id} className="p-4">
+               <div className="flex items-start justify-between gap-4">
+                 <input
+                   type="checkbox"
+                   checked={selectedStores.has(store.id)}
+                   onChange={(e) => {
+                     const newSelected = new Set(selectedStores);
+                     if (e.target.checked) newSelected.add(store.id);
+                     else newSelected.delete(store.id);
+                     setSelectedStores(newSelected);
+                   }}
+                   className="mt-1 flex-shrink-0 w-4 h-4"
+                 />
+                 <div className="flex-1 min-w-0">
+                   <div className="flex items-center gap-2 flex-wrap">
+                     <h3 className="font-semibold text-gray-900">{store.name}</h3>
+                     <Badge className={STATUS_COLORS[store.status] || ""}>
+                       {store.status}
+                     </Badge>
+                     {store.business_status && (
+                       <Badge className={BUSINESS_STATUS_COLORS[store.business_status] || "bg-gray-100 text-gray-700"}>
+                         {store.business_status.replace(/_/g, " ")}
+                       </Badge>
+                     )}
+                     {store.confidence_score && (
+                       <Badge className={
+                         store.confidence_score === "high" ? "bg-green-100 text-green-800" :
+                         store.confidence_score === "medium" ? "bg-yellow-100 text-yellow-800" :
+                         "bg-orange-100 text-orange-800"
+                       }>
+                         {store.confidence_score} confidence
+                       </Badge>
+                     )}
+                     {store.email_sent && (
+                       <Badge className="bg-purple-100 text-purple-700">Email Sent</Badge>
+                     )}
+                   </div>
                   <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     {store.address || `${store.city}, ${store.state}`}
@@ -334,8 +354,14 @@ export default function AdminImports() {
                     <p className="text-sm text-gray-400">{store.phone}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1 capitalize">
-                    Category: {store.category} · Region: {store.source_region}
+                    Category: {store.category} · State: {store.state} · Region: {store.source_region}
                   </p>
+                  {store.confidence_reason && (
+                    <p className="text-xs text-gray-500 mt-0.5">Reason: {store.confidence_reason}</p>
+                  )}
+                  {store.closure_signals?.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-0.5">Signals: {store.closure_signals.join(", ")}</p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
