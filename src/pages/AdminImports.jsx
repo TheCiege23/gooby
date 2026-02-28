@@ -36,6 +36,7 @@ import OverpassPanel from "@/components/admin/OverpassPanel";
 import WebSearchPanel from "@/components/admin/WebSearchPanel";
 import GovFilingsPanel from "@/components/admin/GovFilingsPanel";
 import SafeGraphApiPanel from "@/components/admin/SafeGraphApiPanel";
+import DataBankImportPanel from "@/components/admin/DataBankImportPanel";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
