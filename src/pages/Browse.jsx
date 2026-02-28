@@ -152,11 +152,12 @@ export default function Browse() {
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('');
+    setLocationFilter('');
     setPriceRange([0, 1000]);
     setMinDiscount(0);
   };
 
-  const hasActiveFilters = searchQuery || selectedCategory || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
+  const hasActiveFilters = searchQuery || selectedCategory || locationFilter || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
