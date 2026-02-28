@@ -136,6 +136,7 @@ export default function AdminImports() {
       <div className="flex gap-2 mb-6">
         {[
           { id: "imports", label: "Store Imports", icon: Store },
+          { id: "coresight", label: "Coresight Upload", icon: FileSpreadsheet },
           { id: "flagged", label: "Flagged Listings", icon: Flag },
           { id: "verification", label: "Seller Verification", icon: ShieldCheck },
         ].map(({ id, label, icon: Icon }) => (
