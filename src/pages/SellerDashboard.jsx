@@ -134,6 +134,37 @@ export default function SellerDashboard() {
             setActiveTab("overview");
           }} />
         </TabsContent>
+
+        <TabsContent value="billing">
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-gray-200 bg-white p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Listing Fee</h2>
+              <p className="text-gray-500 text-sm mb-4">
+                Pay a one-time $9.99 fee to publish your store and start reaching buyers.
+              </p>
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-blue-50 mb-4">
+                <CreditCard className="w-8 h-8 text-blue-600" />
+                <div>
+                  <p className="font-semibold text-gray-900">$9.99 One-Time</p>
+                  <p className="text-sm text-gray-500">Includes store listing + product uploads</p>
+                </div>
+              </div>
+              <CheckoutButton
+                type="listing_fee"
+                label="Pay $9.99 Listing Fee"
+                icon={CreditCard}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              />
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Commission Info</h2>
+              <p className="text-gray-500 text-sm">
+                A <strong>5% commission</strong> is applied on tracked sales made through GOOBY. No upfront cost — only pay when you sell.
+              </p>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
