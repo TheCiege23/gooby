@@ -21,6 +21,7 @@ import {
 import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
 import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
+import NearbyClosure from "@/components/buyer/NearbyClosure";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -212,6 +213,9 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* Nearby Closures */}
+      <NearbyClosure />
 
       {/* Closing Soon Stores */}
       <section className="py-12 px-4 sm:px-6 max-w-7xl mx-auto">
