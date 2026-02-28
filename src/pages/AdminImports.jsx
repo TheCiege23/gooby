@@ -170,6 +170,7 @@ export default function AdminImports() {
       {activeSection === "verification" && <SellerVerificationPanel />}
       {activeSection === "coresight" && <CoresightImportPanel />}
       {activeSection === "safegraph" && <SafeGraphUploadPanel />}
+      {activeSection === "safegraph-api" && <SafeGraphApiPanel />}
       {activeSection === "overpass" && <OverpassPanel />}
       {activeSection === "websearch" && <WebSearchPanel />}
       {activeSection === "govfilings" && <GovFilingsPanel />}
