@@ -30,6 +30,7 @@ import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
 import CoresightImportPanel from "@/components/admin/CoresightImportPanel";
 import SafeGraphUploadPanel from "@/components/admin/SafeGraphUploadPanel";
+import OverpassPanel from "@/components/admin/OverpassPanel";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
