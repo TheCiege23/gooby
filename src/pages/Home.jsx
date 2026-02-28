@@ -256,16 +256,29 @@ export default function Home() {
               <p className="text-blue-100 text-lg mb-8 max-w-xl mx-auto">
                 List your inventory on GOOBY and reach thousands of deal-hunters looking for your products.
               </p>
-              <Link to={createPageUrl("Settings")}>
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 rounded-full px-8">
-                  <Store className="w-5 h-5 mr-2" />
-                  Become a Seller
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link to={createPageUrl("Settings")}>
+                  <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 rounded-full px-8">
+                    <Store className="w-5 h-5 mr-2" />
+                    Become a Seller
+                  </Button>
+                </Link>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white text-white hover:bg-white/10 rounded-full px-8"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <Flag className="w-5 h-5 mr-2" />
+                  Report a Closure
                 </Button>
-              </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
+
+      <ReportClosureModal open={reportOpen} onClose={() => setReportOpen(false)} />
     </div>
   );
 }
