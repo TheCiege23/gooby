@@ -23,10 +23,13 @@ import {
   Flag,
   ShieldCheck,
   FileSpreadsheet,
+  Globe,
+  Database,
 } from "lucide-react";
 import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
 import CoresightImportPanel from "@/components/admin/CoresightImportPanel";
+import SafeGraphUploadPanel from "@/components/admin/SafeGraphUploadPanel";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -137,6 +140,8 @@ export default function AdminImports() {
         {[
           { id: "imports", label: "Store Imports", icon: Store },
           { id: "coresight", label: "Coresight Upload", icon: FileSpreadsheet },
+          { id: "safegraph", label: "SafeGraph Upload", icon: Database },
+          { id: "overpass", label: "OSM Scanner", icon: Globe },
           { id: "flagged", label: "Flagged Listings", icon: Flag },
           { id: "verification", label: "Seller Verification", icon: ShieldCheck },
         ].map(({ id, label, icon: Icon }) => (
@@ -155,6 +160,8 @@ export default function AdminImports() {
       {activeSection === "flagged" && <FlaggedProductsPanel />}
       {activeSection === "verification" && <SellerVerificationPanel />}
       {activeSection === "coresight" && <CoresightImportPanel />}
+      {activeSection === "safegraph" && <SafeGraphUploadPanel />}
+      {activeSection === "overpass" && <OverpassPanel />}
 
       {activeSection === "imports" && importResult && (
         <Card className="p-4 mb-6 bg-green-50 border-green-200">
