@@ -299,27 +299,29 @@ export default function Browse() {
         </div>
 
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {selectedCategory && (
-              <Badge variant="secondary" className="rounded-full pl-3">
-                {categories.find(c => c.value === selectedCategory)?.label}
-                <button onClick={() => setSelectedCategory('')} className="ml-2">
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            )}
-            {minDiscount > 0 && (
-              <Badge variant="secondary" className="rounded-full pl-3">
-                {minDiscount}%+ off
-                <button onClick={() => setMinDiscount(0)} className="ml-2">
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            )}
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-blue-600">
-              Clear all
-            </Button>
-          </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {selectedCategory && (
+            <Badge variant="secondary" className="rounded-full pl-3">
+              {categories.find(c => c.value === selectedCategory)?.label}
+              <button onClick={() => setSelectedCategory('')} className="ml-2"><X className="w-3 h-3" /></button>
+            </Badge>
+          )}
+          {locationFilter && (
+            <Badge variant="secondary" className="rounded-full pl-3">
+              <MapPin className="w-3 h-3 mr-1" />{locationFilter}
+              <button onClick={() => setLocationFilter('')} className="ml-2"><X className="w-3 h-3" /></button>
+            </Badge>
+          )}
+          {minDiscount > 0 && (
+            <Badge variant="secondary" className="rounded-full pl-3">
+              {minDiscount}%+ off
+              <button onClick={() => setMinDiscount(0)} className="ml-2"><X className="w-3 h-3" /></button>
+            </Badge>
+          )}
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-blue-600">
+            Clear all
+          </Button>
+        </div>
         )}
       </div>
 
