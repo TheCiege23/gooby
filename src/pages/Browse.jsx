@@ -124,7 +124,13 @@ export default function Browse() {
     
     const matchesCategory = !selectedCategory || store.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    const loc = locationFilter.toLowerCase();
+    const matchesLocation = !locationFilter ||
+      store.city?.toLowerCase().includes(loc) ||
+      store.state?.toLowerCase().includes(loc) ||
+      store.zip_code?.includes(loc);
+
+    return matchesSearch && matchesCategory && matchesLocation;
   });
 
   const storeMap = stores.reduce((acc, store) => {
