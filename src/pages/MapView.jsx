@@ -308,6 +308,11 @@ export default function MapView() {
           </gmp-map>
         )}
 
+        {/* Neighborhood Discovery overlay iframe */}
+        <div className="absolute bottom-0 left-0 right-0 h-64 pointer-events-none hidden">
+          {/* reserved for future neighborhood panel */}
+        </div>
+
         {/* Selected Store Card (Mobile) */}
         {selectedStore && (
           <div className="absolute bottom-4 left-4 right-4 md:hidden z-10">
