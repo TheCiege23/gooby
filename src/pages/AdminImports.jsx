@@ -178,21 +178,21 @@ export default function AdminImports() {
       )}
 
       {/* Table - only for imports section */}
-      {activeSection === "imports" && isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : activeSection === "imports" && importedStores.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <Store className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>No {statusFilter !== "all" ? statusFilter : ""} imports found.</p>
-          <p className="text-sm mt-1">Click "Run Import" to fetch closing stores from Google Places.</p>
-        </div>
-      ) : activeSection === "imports" ? (
-        importedStores.length === 0 ? null :
-        <div className="space-y-3">
+      {activeSection === "imports" && (
+        isLoading ? (
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : importedStores.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <Store className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>No {statusFilter !== "all" ? statusFilter : ""} imports found.</p>
+            <p className="text-sm mt-1">Click "Run Import" to fetch closing stores from Google Places.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
           {importedStores.map((store) => (
             <Card key={store.id} className="p-4">
               <div className="flex items-start justify-between gap-4">
@@ -263,7 +263,8 @@ export default function AdminImports() {
               </div>
             </Card>
           ))}
-        </div>
+          </div>
+        )
       )}
     </div>
   );
