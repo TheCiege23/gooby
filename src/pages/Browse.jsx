@@ -95,7 +95,15 @@ export default function Browse() {
       (product.original_price ? Math.round(((product.original_price - product.sale_price) / product.original_price) * 100) : 0);
     const matchesDiscount = discount >= minDiscount;
 
-    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount;
+    // Location filter — match against store city/state/zip
+    const store = storeMap[product.store_id];
+    const loc = locationFilter.toLowerCase();
+    const matchesLocation = !locationFilter || 
+      store?.city?.toLowerCase().includes(loc) ||
+      store?.state?.toLowerCase().includes(loc) ||
+      store?.zip_code?.includes(loc);
+
+    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation;
   }).sort((a, b) => {
     switch (sortBy) {
       case 'price_low':
