@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Navigation
 } from "lucide-react";
+import RecentlyViewedTracker from "@/components/buyer/RecentlyViewedTracker";
 
 export default function ProductDetail() {
   const urlParams = new URLSearchParams(window.location.search);

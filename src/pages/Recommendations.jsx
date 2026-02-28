@@ -235,6 +235,16 @@ Respond with a JSON object.`,
         </div>
       </Card>
 
+      {/* Daily Digest */}
+      {products.length > 0 && (
+        <DailyDigestPanel
+          user={user}
+          products={products}
+          stores={stores}
+          savedProducts={savedProducts}
+        />
+      )}
+
       {/* User Preferences Summary */}
       {(user?.preferred_categories?.length > 0 || user?.preferred_location) && (
         <Card className="mb-8 p-4">
