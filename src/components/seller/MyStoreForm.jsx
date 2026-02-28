@@ -12,6 +12,8 @@ import {
 import {
   Store, Save, Loader2, CheckCircle, Upload, MapPin, Phone, Mail, Image, Navigation
 } from "lucide-react";
+import SellerVerificationCard from "@/components/moderation/SellerVerificationCard";
+import SimpleCaptcha from "@/components/moderation/SimpleCaptcha";
 
 const CATEGORIES = [
   { label: "Clothing", value: "clothing" },
@@ -31,6 +33,7 @@ export default function MyStoreForm({ user, onSaved }) {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
+  const [captchaOk, setCaptchaOk] = useState(false);
 
   const [storeData, setStoreData] = useState({
     name: "", description: "", address: "", city: "", state: "",
@@ -278,9 +281,22 @@ export default function MyStoreForm({ user, onSaved }) {
         </CardContent>
       </Card>
 
+      {/* Verification */}
+      {existingStore && (
+        <SellerVerificationCard store={existingStore} onUpdated={() => {}} />
+      )}
+
+      {/* CAPTCHA on first save (new store) */}
+      {!existingStore && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700">Security Check</p>
+          <SimpleCaptcha onVerified={setCaptchaOk} />
+        </div>
+      )}
+
       <Button
         onClick={handleSave}
-        disabled={saving || !storeData.name || !storeData.address || !storeData.city}
+        disabled={saving || !storeData.name || !storeData.address || !storeData.city || (!existingStore && !captchaOk)}
         className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
         size="lg"
       >
