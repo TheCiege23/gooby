@@ -147,6 +147,7 @@ export default function AdminImports() {
           { id: "imports", label: "Store Imports", icon: Store },
           { id: "coresight", label: "Coresight Upload", icon: FileSpreadsheet },
           { id: "safegraph", label: "SafeGraph Upload", icon: Database },
+          { id: "safegraph-api", label: "SafeGraph API", icon: Database },
           { id: "overpass", label: "OSM Scanner", icon: Globe },
           { id: "websearch", label: "Web Search", icon: Search },
           { id: "govfilings", label: "Gov Filings", icon: Landmark },
