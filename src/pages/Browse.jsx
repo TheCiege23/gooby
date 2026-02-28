@@ -165,10 +165,22 @@ export default function Browse() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Browse Deals</h1>
-        <p className="text-gray-500 mt-2">Find amazing discounts from closing stores</p>
+      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Browse Deals</h1>
+          <p className="text-gray-500 mt-2">Find amazing discounts from closing stores</p>
+        </div>
+        <Button
+          variant="outline"
+          className="border-blue-200 text-blue-700 hover:bg-blue-50 rounded-full"
+          onClick={() => setReportOpen(true)}
+        >
+          <Flag className="w-4 h-4 mr-2" />
+          Report a Closure
+        </Button>
       </div>
+
+      <ReportClosureModal open={reportOpen} onClose={() => setReportOpen(false)} />
 
       {/* AI Match Panel (buyers only) */}
       {user && user.role !== 'seller' && products.length > 0 && (
