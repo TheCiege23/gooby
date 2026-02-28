@@ -293,19 +293,34 @@ export default function MyProductsList({ store, onStoreNeeded }) {
             </div>
 
             {discountPreview !== null && discountPreview > 0 && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
-                <span className="text-2xl">🎉</span>
+              <div className={`p-3 border rounded-xl flex items-center gap-2 ${discountPreview >= 90 ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
+                <span className="text-2xl">{discountPreview >= 90 ? "⚠️" : "🎉"}</span>
                 <div>
-                  <p className="font-semibold text-green-700">{discountPreview}% discount</p>
-                  <p className="text-sm text-green-600">Buyers save ${(parseFloat(form.original_price) - parseFloat(form.sale_price)).toFixed(2)}</p>
+                  <p className={`font-semibold ${discountPreview >= 90 ? "text-red-700" : "text-green-700"}`}>{discountPreview}% discount</p>
+                  {discountPreview >= 90 && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> Very high discounts may trigger AI scam detection
+                    </p>
+                  )}
+                  {discountPreview < 90 && (
+                    <p className="text-sm text-green-600">Buyers save ${(parseFloat(form.original_price) - parseFloat(form.sale_price)).toFixed(2)}</p>
+                  )}
                 </div>
+              </div>
+            )}
+
+            {/* CAPTCHA for new products */}
+            {!editingProduct && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Security Check</label>
+                <SimpleCaptcha onVerified={setCaptchaOk} />
               </div>
             )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving || !form.name || !form.sale_price || !form.category} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleSave} disabled={saving || !form.name || !form.sale_price || !form.category || (!editingProduct && !captchaOk)} className="bg-blue-600 hover:bg-blue-700">
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editingProduct ? "Save Changes" : "Add Product"}
             </Button>
