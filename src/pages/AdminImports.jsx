@@ -25,12 +25,14 @@ import {
   FileSpreadsheet,
   Globe,
   Database,
+  Search,
 } from "lucide-react";
 import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
 import CoresightImportPanel from "@/components/admin/CoresightImportPanel";
 import SafeGraphUploadPanel from "@/components/admin/SafeGraphUploadPanel";
 import OverpassPanel from "@/components/admin/OverpassPanel";
+import WebSearchPanel from "@/components/admin/WebSearchPanel";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -143,6 +145,7 @@ export default function AdminImports() {
           { id: "coresight", label: "Coresight Upload", icon: FileSpreadsheet },
           { id: "safegraph", label: "SafeGraph Upload", icon: Database },
           { id: "overpass", label: "OSM Scanner", icon: Globe },
+          { id: "websearch", label: "Web Search", icon: Search },
           { id: "flagged", label: "Flagged Listings", icon: Flag },
           { id: "verification", label: "Seller Verification", icon: ShieldCheck },
         ].map(({ id, label, icon: Icon }) => (
@@ -163,6 +166,7 @@ export default function AdminImports() {
       {activeSection === "coresight" && <CoresightImportPanel />}
       {activeSection === "safegraph" && <SafeGraphUploadPanel />}
       {activeSection === "overpass" && <OverpassPanel />}
+      {activeSection === "websearch" && <WebSearchPanel />}
 
       {activeSection === "imports" && importResult && (
         <Card className="p-4 mb-6 bg-green-50 border-green-200">
