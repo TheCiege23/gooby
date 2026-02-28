@@ -263,6 +263,51 @@ export default function Settings() {
           </div>
         </TabsContent>
 
+        {/* Premium Tab */}
+        <TabsContent value="premium">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-yellow-500" />
+                GOOBY Premium
+              </CardTitle>
+              <CardDescription>Unlock unlimited alerts and priority AI deal recommendations</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="p-4 rounded-xl bg-yellow-50 text-center">
+                  <Bell className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                  <h4 className="font-semibold">Unlimited Alerts</h4>
+                  <p className="text-sm text-gray-600 mt-1">Get notified for every deal that matches your preferences</p>
+                </div>
+                <div className="p-4 rounded-xl bg-yellow-50 text-center">
+                  <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                  <h4 className="font-semibold">Priority AI Picks</h4>
+                  <p className="text-sm text-gray-600 mt-1">AI recommendations ranked just for you, updated daily</p>
+                </div>
+                <div className="p-4 rounded-xl bg-yellow-50 text-center">
+                  <MapPin className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                  <h4 className="font-semibold">Early Access</h4>
+                  <p className="text-sm text-gray-600 mt-1">See new store listings before regular buyers</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-5 rounded-2xl border-2 border-yellow-300 bg-yellow-50">
+                <div>
+                  <p className="text-2xl font-black text-gray-900">$4.99<span className="text-base font-normal text-gray-500">/month</span></p>
+                  <p className="text-sm text-gray-500">Cancel anytime</p>
+                </div>
+                <CheckoutButton
+                  type="premium_subscription"
+                  label="Subscribe to Premium"
+                  icon={Star}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Become a Seller Tab */}
         {user?.role !== "seller" && (
           <TabsContent value="seller">
