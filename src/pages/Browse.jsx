@@ -25,7 +25,8 @@ import {
   X,
   Grid3X3,
   Store,
-  MapPin
+  MapPin,
+  Flag
 } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";

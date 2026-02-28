@@ -15,7 +15,8 @@ import {
   ArrowRight,
   TrendingDown,
   Clock,
-  Star
+  Star,
+  Flag
 } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
