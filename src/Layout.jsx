@@ -56,7 +56,7 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const userNavItems = user?.role === "seller" ? [
-    { name: "My Store", page: "MyStore", icon: Store },
+    { name: "Dashboard", page: "SellerDashboard", icon: Store },
     { name: "My Products", page: "MyProducts", icon: Package },
   ] : [
     { name: "Saved Deals", page: "SavedDeals", icon: Heart },
