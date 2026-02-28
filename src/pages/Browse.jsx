@@ -24,12 +24,12 @@ import {
   SlidersHorizontal, 
   X,
   Grid3X3,
-  List,
   Store,
   MapPin
 } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
+import AIMatchPanel from "@/components/buyer/AIMatchPanel";
 
 export default function Browse() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -38,6 +38,7 @@ export default function Browse() {
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [locationFilter, setLocationFilter] = useState(urlParams.get('location') || '');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [minDiscount, setMinDiscount] = useState(0);
   const [sortBy, setSortBy] = useState('newest');
