@@ -45,6 +45,7 @@ export default function Browse() {
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState('products');
   const [user, setUser] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [savedProducts, setSavedProducts] = useState([]);
 
   useEffect(() => {

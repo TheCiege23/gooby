@@ -24,6 +24,7 @@ import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     loadUser();
