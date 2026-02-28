@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminImports from './pages/AdminImports';
 import Browse from './pages/Browse';
 import DealAlerts from './pages/DealAlerts';
 import Home from './pages/Home';
@@ -56,14 +57,14 @@ import MyStore from './pages/MyStore';
 import ProductDetail from './pages/ProductDetail';
 import Recommendations from './pages/Recommendations';
 import SavedDeals from './pages/SavedDeals';
+import SellerDashboard from './pages/SellerDashboard';
 import Settings from './pages/Settings';
 import StoreProfile from './pages/StoreProfile';
-import SellerDashboard from './pages/SellerDashboard';
-import AdminImports from './pages/AdminImports';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminImports": AdminImports,
     "Browse": Browse,
     "DealAlerts": DealAlerts,
     "Home": Home,
@@ -73,10 +74,9 @@ export const PAGES = {
     "ProductDetail": ProductDetail,
     "Recommendations": Recommendations,
     "SavedDeals": SavedDeals,
+    "SellerDashboard": SellerDashboard,
     "Settings": Settings,
     "StoreProfile": StoreProfile,
-    "SellerDashboard": SellerDashboard,
-    "AdminImports": AdminImports,
 }
 
 export const pagesConfig = {

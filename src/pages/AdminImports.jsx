@@ -18,10 +18,13 @@ import {
   X,
   Mail,
   Loader2,
-  RefreshCw,
   Store,
   AlertTriangle,
+  Flag,
+  ShieldCheck,
 } from "lucide-react";
+import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
+import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -37,6 +40,7 @@ const BUSINESS_STATUS_COLORS = {
 
 export default function AdminImports() {
   const [user, setUser] = useState(null);
+  const [activeSection, setActiveSection] = useState("imports");
   const [statusFilter, setStatusFilter] = useState("pending");
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
@@ -114,27 +118,41 @@ export default function AdminImports() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-orange-500" />
-            Closing Store Imports
+            Admin Moderation
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Review stores detected via Google Places as closed or closing
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Manage imports, flagged listings, and seller verification</p>
         </div>
-        <Button
-          onClick={runImport}
-          disabled={importing}
-          className="bg-blue-600 hover:bg-blue-700 gap-2"
-        >
-          {importing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
-          {importing ? "Importing..." : "Run Import (New Jersey)"}
-        </Button>
+        {activeSection === "imports" && (
+          <Button onClick={runImport} disabled={importing} className="bg-blue-600 hover:bg-blue-700 gap-2">
+            {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {importing ? "Importing..." : "Run Import (New Jersey)"}
+          </Button>
+        )}
       </div>
 
-      {importResult && (
+      {/* Section Tabs */}
+      <div className="flex gap-2 mb-6">
+        {[
+          { id: "imports", label: "Store Imports", icon: Store },
+          { id: "flagged", label: "Flagged Listings", icon: Flag },
+          { id: "verification", label: "Seller Verification", icon: ShieldCheck },
+        ].map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveSection(id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeSection === id ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            <Icon className="w-4 h-4" /> {label}
+          </button>
+        ))}
+      </div>
+
+      {activeSection === "flagged" && <FlaggedProductsPanel />}
+      {activeSection === "verification" && <SellerVerificationPanel />}
+
+      {activeSection === "imports" && importResult && (
         <Card className="p-4 mb-6 bg-green-50 border-green-200">
           <p className="text-green-800 font-medium">
             ✅ Import complete — {importResult.imported} new stores added, {importResult.skipped} skipped (already imported or not closed).
@@ -157,22 +175,22 @@ export default function AdminImports() {
             {s}
           </button>
         ))}
-      </div>
+      </div>}
 
-      {/* Table */}
-      {isLoading ? (
+      {/* Table - only for imports section */}
+      {activeSection === "imports" && isLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
           ))}
         </div>
-      ) : importedStores.length === 0 ? (
+      ) : activeSection === "imports" && importedStores.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <Store className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>No {statusFilter !== "all" ? statusFilter : ""} imports found.</p>
           <p className="text-sm mt-1">Click "Run Import" to fetch closing stores from Google Places.</p>
         </div>
-      ) : (
+      ) : activeSection === "imports" ? (
         <div className="space-y-3">
           {importedStores.map((store) => (
             <Card key={store.id} className="p-4">
