@@ -47,32 +47,34 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Home from './pages/Home';
 import Browse from './pages/Browse';
-import MapView from './pages/MapView';
-import StoreProfile from './pages/StoreProfile';
-import ProductDetail from './pages/ProductDetail';
-import Settings from './pages/Settings';
-import MyStore from './pages/MyStore';
-import MyProducts from './pages/MyProducts';
-import SavedDeals from './pages/SavedDeals';
 import DealAlerts from './pages/DealAlerts';
+import Home from './pages/Home';
+import MapView from './pages/MapView';
+import MyProducts from './pages/MyProducts';
+import MyStore from './pages/MyStore';
+import ProductDetail from './pages/ProductDetail';
 import Recommendations from './pages/Recommendations';
+import SavedDeals from './pages/SavedDeals';
+import Settings from './pages/Settings';
+import StoreProfile from './pages/StoreProfile';
+import SellerDashboard from './pages/SellerDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
     "Browse": Browse,
-    "MapView": MapView,
-    "StoreProfile": StoreProfile,
-    "ProductDetail": ProductDetail,
-    "Settings": Settings,
-    "MyStore": MyStore,
-    "MyProducts": MyProducts,
-    "SavedDeals": SavedDeals,
     "DealAlerts": DealAlerts,
+    "Home": Home,
+    "MapView": MapView,
+    "MyProducts": MyProducts,
+    "MyStore": MyStore,
+    "ProductDetail": ProductDetail,
     "Recommendations": Recommendations,
+    "SavedDeals": SavedDeals,
+    "Settings": Settings,
+    "StoreProfile": StoreProfile,
+    "SellerDashboard": SellerDashboard,
 }
 
 export const pagesConfig = {
