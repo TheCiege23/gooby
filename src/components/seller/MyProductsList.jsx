@@ -18,7 +18,9 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Upload, Package, X, Store } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Upload, Package, X, Store, AlertTriangle } from "lucide-react";
+import SimpleCaptcha from "@/components/moderation/SimpleCaptcha";
+import { base44 } from "@/api/base44Client";
 
 const CATEGORIES = [
   { label: "Clothing", value: "clothing" },
@@ -52,6 +54,7 @@ export default function MyProductsList({ store, onStoreNeeded }) {
   const [saving, setSaving] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [form, setForm] = useState(EMPTY);
+  const [captchaOk, setCaptchaOk] = useState(false);
 
   const set = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -85,7 +88,7 @@ export default function MyProductsList({ store, onStoreNeeded }) {
 
   const removeImage = (idx) => set("images", form.images.filter((_, i) => i !== idx));
 
-  const openNew = () => { setEditingProduct(null); setForm(EMPTY); setDialogOpen(true); };
+  const openNew = () => { setEditingProduct(null); setForm(EMPTY); setCaptchaOk(false); setDialogOpen(true); };
 
   const openEdit = (product) => {
     setEditingProduct(product);
@@ -107,8 +110,14 @@ export default function MyProductsList({ store, onStoreNeeded }) {
       discount_percent: orig > 0 ? Math.round(((orig - sale) / orig) * 100) : 0,
       quantity: parseInt(form.quantity) || 1, is_available: true,
     };
-    if (editingProduct) await base44.entities.Product.update(editingProduct.id, data);
-    else await base44.entities.Product.create(data);
+    let savedProduct;
+    if (editingProduct) {
+      savedProduct = await base44.entities.Product.update(editingProduct.id, data);
+    } else {
+      savedProduct = await base44.entities.Product.create(data);
+      // Kick off AI scam scan asynchronously
+      base44.functions.invoke("scanProductForScam", { productId: savedProduct.id }).catch(() => {});
+    }
     queryClient.invalidateQueries({ queryKey: ["myProducts"] });
     setDialogOpen(false);
     setSaving(false);
