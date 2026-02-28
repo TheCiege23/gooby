@@ -113,6 +113,7 @@ export default function Settings() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <PaymentNotification />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
       <p className="text-gray-500 mb-8">Manage your account and preferences</p>
 
@@ -125,6 +126,10 @@ export default function Settings() {
           <TabsTrigger value="preferences" className="rounded-lg">
             <Bell className="w-4 h-4 mr-2" />
             Preferences
+          </TabsTrigger>
+          <TabsTrigger value="premium" className="rounded-lg">
+            <Star className="w-4 h-4 mr-2" />
+            Premium
           </TabsTrigger>
           {user?.role !== "seller" && (
             <TabsTrigger value="seller" className="rounded-lg">
