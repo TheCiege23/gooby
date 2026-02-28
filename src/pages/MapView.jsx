@@ -61,10 +61,12 @@ export default function MapView() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [gmpxReady, setGmpxReady] = useState(false);
   const mapRef = useRef(null);
   const markersRef = useRef({});
   const infoWindowRef = useRef(null);
   const mapDivRef = useRef(null);
+  const placePickerRef = useRef(null);
 
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ['stores'],
