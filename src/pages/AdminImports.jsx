@@ -54,9 +54,14 @@ export default function AdminImports() {
   const [user, setUser] = useState(null);
   const [activeSection, setActiveSection] = useState("imports");
   const [statusFilter, setStatusFilter] = useState("pending");
+  const [stateFilter, setStateFilter] = useState("all");
+  const [scoreFilter, setScoreFilter] = useState("all");
+  const [nearbyFilter, setNearbyFilter] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const [sendingEmail, setSendingEmail] = useState(null);
+  const [selectedStores, setSelectedStores] = useState(new Set());
+  const [bulkAction, setBulkAction] = useState(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -69,18 +74,64 @@ export default function AdminImports() {
   }, []);
 
   const { data: importedStores = [], isLoading } = useQuery({
-    queryKey: ["imported-stores", statusFilter],
-    queryFn: () =>
-      statusFilter === "all"
-        ? base44.entities.ImportedStore.list("-created_date", 100)
-        : base44.entities.ImportedStore.filter({ status: statusFilter }, "-created_date", 100),
+    queryKey: ["imported-stores", statusFilter, stateFilter, scoreFilter, nearbyFilter],
+    queryFn: async () => {
+      let stores;
+      if (statusFilter === "all") {
+        stores = await base44.entities.ImportedStore.list("-created_date", 500);
+      } else {
+        stores = await base44.entities.ImportedStore.filter({ status: statusFilter }, "-created_date", 500);
+      }
+      
+      // Apply additional filters
+      return stores.filter(s => {
+        // State filter
+        if (stateFilter !== "all" && s.state !== stateFilter) return false;
+        // Confidence score filter
+        if (scoreFilter !== "all" && s.confidence_score !== scoreFilter) return false;
+        // Nearby Sayreville, NJ (40.4594, -74.3608) — 10 mile radius (~0.143 degrees)
+        if (nearbyFilter && s.latitude && s.longitude) {
+          const dist = Math.sqrt(Math.pow(s.latitude - 40.4594, 2) + Math.pow(s.longitude - (-74.3608), 2));
+          if (dist > 0.143) return false;
+        }
+        return true;
+      }).sort((a, b) => {
+        // Sort by state, then by confidence (high > medium > low), then by creation date
+        if (a.state !== b.state) return a.state.localeCompare(b.state);
+        const scoreOrder = { high: 0, medium: 1, low: 2 };
+        const scoreA = scoreOrder[a.confidence_score] ?? 3;
+        const scoreB = scoreOrder[b.confidence_score] ?? 3;
+        if (scoreA !== scoreB) return scoreA - scoreB;
+        return new Date(b.created_date) - new Date(a.created_date);
+      });
+    }
   });
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }) =>
       base44.entities.ImportedStore.update(id, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["imported-stores"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["imported-stores"] });
+      setSelectedStores(new Set());
+      setBulkAction(null);
+    }
   });
+
+  const bulkUpdateStatus = async (status) => {
+    setBulkAction("updating");
+    try {
+      await Promise.all(
+        Array.from(selectedStores).map(id =>
+          base44.entities.ImportedStore.update(id, { status })
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ["imported-stores"] });
+      setSelectedStores(new Set());
+      setBulkAction(null);
+    } catch (err) {
+      setBulkAction(null);
+    }
+  };
 
   const approveStore = async (importedStore) => {
     // Create a real Store record from the imported data
@@ -188,18 +239,56 @@ export default function AdminImports() {
 
       {/* Filters - only for imports section */}
       {activeSection === "imports" && (
-        <div className="flex gap-3 mb-4">
-          {["pending", "approved", "rejected", "all"].map((s) => (
+        <div className="space-y-3 mb-4">
+          <div className="flex gap-3 flex-wrap items-center">
+            {["pending", "approved", "rejected", "all"].map((s) => (
+              <button
+                key={s}
+                onClick={() => { setStatusFilter(s); setSelectedStores(new Set()); }}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize ${
+                  statusFilter === s ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+            <div className="h-5 w-px bg-gray-300" />
+            <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)} className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50">
+              <option value="all">All States</option>
+              <option value="NY">New York</option>
+              <option value="NJ">New Jersey</option>
+              <option value="CT">Connecticut</option>
+              <option value="PA">Pennsylvania</option>
+            </select>
+            <select value={scoreFilter} onChange={(e) => setScoreFilter(e.target.value)} className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50">
+              <option value="all">All Confidence</option>
+              <option value="high">High Only</option>
+              <option value="medium">Medium Only</option>
+              <option value="low">Low Only</option>
+            </select>
             <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize ${
-                statusFilter === s ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              onClick={() => setNearbyFilter(!nearbyFilter)}
+              className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-all ${
+                nearbyFilter ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              {s}
+              📍 Sayreville NJ
             </button>
-          ))}
+          </div>
+          {selectedStores.size > 0 && (
+            <div className="flex gap-2 items-center text-sm">
+              <span className="font-medium">{selectedStores.size} selected</span>
+              <button onClick={() => bulkUpdateStatus("approved")} disabled={bulkAction} className="px-3 py-1 text-green-600 border border-green-200 rounded-lg hover:bg-green-50 text-xs font-medium">
+                {bulkAction ? "..." : "✓ Bulk Approve"}
+              </button>
+              <button onClick={() => bulkUpdateStatus("rejected")} disabled={bulkAction} className="px-3 py-1 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 text-xs font-medium">
+                {bulkAction ? "..." : "✗ Bulk Reject"}
+              </button>
+              <button onClick={() => setSelectedStores(new Set())} className="px-3 py-1 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 text-xs font-medium">
+                Clear
+              </button>
+            </div>
+          )}
         </div>
       )}
 
