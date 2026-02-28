@@ -167,8 +167,19 @@ export default function Browse() {
         <p className="text-gray-500 mt-2">Find amazing discounts from closing stores</p>
       </div>
 
+      {/* AI Match Panel (buyers only) */}
+      {user && user.role !== 'seller' && products.length > 0 && (
+        <AIMatchPanel
+          user={user}
+          products={products}
+          stores={stores}
+          savedProducts={savedProducts}
+          onSaveProduct={handleSaveProduct}
+        />
+      )}
+
       {/* Search & Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
@@ -177,6 +188,17 @@ export default function Browse() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-12 h-12 rounded-xl border-gray-200"
+          />
+        </div>
+
+        <div className="relative md:w-48">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="City or zip..."
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="pl-10 h-12 rounded-xl border-gray-200"
           />
         </div>
 
