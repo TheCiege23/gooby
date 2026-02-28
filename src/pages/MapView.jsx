@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,26 +14,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Navigation, Store, Tag, ArrowRight, Loader2 } from "lucide-react";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import { Search, MapPin, Navigation, Store, ArrowRight, Loader2 } from "lucide-react";
 
-// Fix for default markers
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+const GOOGLE_MAPS_API_KEY = "AIzaSyDg7MzjazFeTvgbDwEGKzdFQgu-5iKSxOE";
 
-function ChangeView({ center, zoom }) {
-  const map = useMap();
-  useEffect(() => {
-    if (center) {
-      map.setView(center, zoom);
+function loadGoogleMapsScript() {
+  return new Promise((resolve) => {
+    if (window.google && window.google.maps) return resolve();
+    const existing = document.querySelector('script[data-gm-script]');
+    if (existing) {
+      existing.addEventListener('load', resolve);
+      return;
     }
-  }, [center, zoom, map]);
-  return null;
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=maps,marker&v=beta`;
+    script.async = true;
+    script.setAttribute('data-gm-script', 'true');
+    script.onload = resolve;
+    document.head.appendChild(script);
+  });
 }
 
 export default function MapView() {
