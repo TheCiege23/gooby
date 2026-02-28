@@ -197,13 +197,33 @@ export default function MapView() {
           
           <div className="space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search by city or zip..."
-                value={searchLocation}
-                onChange={(e) => setSearchLocation(e.target.value)}
-                className="pl-10 rounded-xl"
-              />
+              {gmpxReady ? (
+                <gmpx-place-picker
+                  ref={placePickerRef}
+                  placeholder="Search by city or address..."
+                  style={{ width: '100%', '--gmpx-color-surface': '#fff', '--gmpx-font-family-base': 'inherit' }}
+                  onGmpxPlaceChange={(e) => {
+                    const place = placePickerRef.current?.value;
+                    if (place?.geometry?.location) {
+                      const lat = place.geometry.location.lat();
+                      const lng = place.geometry.location.lng();
+                      mapRef.current?.panTo({ lat, lng });
+                      mapRef.current?.setZoom(13);
+                      setSearchLocation(place.formattedAddress || '');
+                    }
+                  }}
+                />
+              ) : (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Search by city or zip..."
+                    value={searchLocation}
+                    onChange={(e) => setSearchLocation(e.target.value)}
+                    className="pl-10 rounded-xl"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2">
