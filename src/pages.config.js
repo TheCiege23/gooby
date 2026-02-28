@@ -54,6 +54,10 @@ import StoreProfile from './pages/StoreProfile';
 import ProductDetail from './pages/ProductDetail';
 import Settings from './pages/Settings';
 import MyStore from './pages/MyStore';
+import MyProducts from './pages/MyProducts';
+import SavedDeals from './pages/SavedDeals';
+import DealAlerts from './pages/DealAlerts';
+import Recommendations from './pages/Recommendations';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +69,10 @@ export const PAGES = {
     "ProductDetail": ProductDetail,
     "Settings": Settings,
     "MyStore": MyStore,
+    "MyProducts": MyProducts,
+    "SavedDeals": SavedDeals,
+    "DealAlerts": DealAlerts,
+    "Recommendations": Recommendations,
 }
 
 export const pagesConfig = {
