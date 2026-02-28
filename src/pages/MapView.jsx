@@ -45,12 +45,14 @@ function loadExtendedComponents() {
 export default function MapView() {
   const [selectedStore, setSelectedStore] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedState, setSelectedState] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [ready, setReady] = useState(false);
   const gmpMapRef = useRef(null);
   const placePickerRef = useRef(null);
   const infoWindowRef = useRef(null);
   const markersRef = useRef({});
+  const clustersRef = useRef({});
 
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ['stores'],
@@ -62,6 +64,11 @@ export default function MapView() {
     queryFn: () => base44.entities.Product.filter({ is_available: true }),
   });
 
+  const { data: closures = [] } = useQuery({
+    queryKey: ['imported-stores'],
+    queryFn: () => base44.entities.ImportedStore.filter({ status: "approved" }, "-created_date", 500),
+  });
+
   const categories = [
     { label: "All Categories", value: "" },
     { label: "Clothing", value: "clothing" },
@@ -71,9 +78,22 @@ export default function MapView() {
     { label: "Sports", value: "sports" },
   ];
 
+  const STATE_COLORS = {
+    NY: "#3B82F6",
+    NJ: "#10B981",
+    CT: "#A855F7",
+    PA: "#F97316"
+  };
+
   const filteredStores = stores.filter(store => {
     if (!store.latitude || !store.longitude) return false;
     if (selectedCategory && store.category !== selectedCategory) return false;
+    return true;
+  });
+
+  const filteredClosures = closures.filter(c => {
+    if (!c.latitude || !c.longitude) return false;
+    if (selectedState && c.state !== selectedState) return false;
     return true;
   });
 
@@ -111,7 +131,7 @@ export default function MapView() {
     return () => picker.removeEventListener('gmpx-placechange', handlePlaceChange);
   }, [ready]);
 
-  // Add/update markers when filtered stores change
+  // Add/update markers when filtered stores/closures change
   useEffect(() => {
     if (!ready || !gmpMapRef.current) return;
 
@@ -130,6 +150,7 @@ export default function MapView() {
     Object.values(markersRef.current).forEach(m => (m.map = null));
     markersRef.current = {};
 
+    // Add store markers
     filteredStores.forEach(store => {
       const pin = document.createElement('div');
       pin.style.cssText = `
@@ -167,7 +188,44 @@ export default function MapView() {
 
       markersRef.current[store.id] = marker;
     });
-  }, [filteredStores, ready, selectedStore, products]);
+
+    // Add closure markers (state-colored)
+    filteredClosures.forEach(closure => {
+      const stateColor = STATE_COLORS[closure.state] || "#6B7280";
+      const pin = document.createElement('div');
+      pin.style.cssText = `
+        background: ${stateColor};
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        cursor: pointer;
+        opacity: 0.8;
+      `;
+
+      const marker = new AdvancedMarkerElement({
+        map: innerMap,
+        position: { lat: closure.latitude, lng: closure.longitude },
+        content: pin,
+        title: closure.name,
+      });
+
+      marker.addListener('click', () => {
+        infoWindowRef.current.setContent(`
+          <div style="padding:8px; min-width:220px; font-family:sans-serif;">
+            <h3 style="font-weight:700; margin:0 0 4px 0;">${closure.name}</h3>
+            <p style="color:#6B7280; margin:0 0 4px 0; font-size:13px;">${closure.address || closure.city}</p>
+            <p style="color:#999; font-size:12px; margin:4px 0;"><strong>${closure.state}</strong></p>
+            ${closure.closure_signals?.length > 0 ? `<p style="color:#DC2626; font-size:12px; margin:4px 0;">Signals: ${closure.closure_signals.join(', ')}</p>` : ''}
+            ${closure.confidence_score ? `<p style="color:#059669; font-size:12px; margin:4px 0;">Confidence: <strong>${closure.confidence_score}</strong></p>` : ''}
+          </div>
+        `);
+        infoWindowRef.current.open(innerMap, marker);
+      });
+
+      markersRef.current[closure.id] = marker;
+    });
+  }, [filteredStores, filteredClosures, ready, selectedStore, products]);
 
   const getUserLocation = () => {
     setLoadingLocation(true);
@@ -180,7 +238,15 @@ export default function MapView() {
         }
         setLoadingLocation(false);
       },
-      () => setLoadingLocation(false)
+      () => {
+        // Default to Sayreville, NJ
+        const map = gmpMapRef.current;
+        if (map) {
+          map.center = { lat: 40.4594, lng: -74.3608 };
+          map.zoom = 11;
+        }
+        setLoadingLocation(false);
+      }
     );
   };
 
@@ -198,34 +264,59 @@ export default function MapView() {
       {/* Sidebar */}
       <div className="w-full md:w-96 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
         <div className="p-4 border-b border-gray-100">
-          <h1 className="text-xl font-bold text-gray-900 mb-4">Find Stores Near You</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-4">Find Stores & Closures</h1>
 
-          <div className="flex gap-2">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="flex-1 rounded-xl">
-                <SelectValue placeholder="Category" />
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="flex-1 rounded-xl text-sm">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                onClick={getUserLocation}
+                disabled={loadingLocation}
+                className="rounded-xl"
+              >
+                {loadingLocation ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Navigation className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
+
+            <Select value={selectedState} onValueChange={setSelectedState}>
+              <SelectTrigger className="w-full rounded-xl text-sm">
+                <SelectValue placeholder="Filter by state" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value={null}>All States</SelectItem>
+                <SelectItem value="NY">New York</SelectItem>
+                <SelectItem value="NJ">New Jersey</SelectItem>
+                <SelectItem value="CT">Connecticut</SelectItem>
+                <SelectItem value="PA">Pennsylvania</SelectItem>
               </SelectContent>
             </Select>
 
-            <Button
-              variant="outline"
-              onClick={getUserLocation}
-              disabled={loadingLocation}
-              className="rounded-xl"
-            >
-              {loadingLocation ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Navigation className="w-5 h-5" />
-              )}
-            </Button>
+            {/* State color legend */}
+            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100">
+              {Object.entries(STATE_COLORS).map(([state, color]) => (
+                <div key={state} className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+                  <span className="text-gray-600">{state}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
