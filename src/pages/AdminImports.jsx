@@ -160,22 +160,22 @@ export default function AdminImports() {
         </Card>
       )}
 
-      {/* Filters */}
-      <div className="flex gap-3 mb-4">
-        {["pending", "approved", "rejected", "all"].map((s) => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize ${
-              statusFilter === s
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {s}
-          </button>
-        ))}
-      </div>}
+      {/* Filters - only for imports section */}
+      {activeSection === "imports" && (
+        <div className="flex gap-3 mb-4">
+          {["pending", "approved", "rejected", "all"].map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all capitalize ${
+                statusFilter === s ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Table - only for imports section */}
       {activeSection === "imports" && isLoading ? (
