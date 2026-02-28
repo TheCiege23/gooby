@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
+import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
