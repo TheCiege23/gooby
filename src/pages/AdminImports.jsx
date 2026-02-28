@@ -26,6 +26,7 @@ import {
   Globe,
   Database,
   Search,
+  Landmark,
 } from "lucide-react";
 import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
@@ -147,6 +148,7 @@ export default function AdminImports() {
           { id: "safegraph", label: "SafeGraph Upload", icon: Database },
           { id: "overpass", label: "OSM Scanner", icon: Globe },
           { id: "websearch", label: "Web Search", icon: Search },
+          { id: "govfilings", label: "Gov Filings", icon: Landmark },
           { id: "flagged", label: "Flagged Listings", icon: Flag },
           { id: "verification", label: "Seller Verification", icon: ShieldCheck },
         ].map(({ id, label, icon: Icon }) => (
@@ -168,6 +170,7 @@ export default function AdminImports() {
       {activeSection === "safegraph" && <SafeGraphUploadPanel />}
       {activeSection === "overpass" && <OverpassPanel />}
       {activeSection === "websearch" && <WebSearchPanel />}
+      {activeSection === "govfilings" && <GovFilingsPanel />}
 
       {activeSection === "imports" && importResult && (
         <Card className="p-4 mb-6 bg-green-50 border-green-200">
