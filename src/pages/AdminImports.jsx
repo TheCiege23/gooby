@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   Flag,
   ShieldCheck,
+  FileSpreadsheet,
 } from "lucide-react";
 import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
