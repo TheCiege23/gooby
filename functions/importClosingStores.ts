@@ -154,6 +154,24 @@ Deno.serve(async (req) => {
 
           const bizStatus = details.business_status || place.business_status || "UNKNOWN";
 
+          // Score confidence
+          const scoreRes = await base44.asServiceRole.functions.invoke('scoreStoreConfidence', {
+            storeName: details.name,
+            city,
+            state,
+            category: mapCategory(details.types || []),
+            businessStatus: bizStatus,
+            sourceNote: details.name
+          });
+
+          const confidence = scoreRes?.confidence_score || "medium";
+
+          // Auto-reject low-confidence entries
+          if (confidence === "low") {
+            lowSignal++;
+            continue;
+          }
+
           await base44.asServiceRole.entities.ImportedStore.create({
             place_id: details.place_id,
             name: details.name,
@@ -170,6 +188,9 @@ Deno.serve(async (req) => {
             status: "pending",
             email_sent: false,
             source_region: `${loc.region} (Google Places API)`,
+            confidence_score: confidence,
+            confidence_reason: scoreRes?.reason || "",
+            closure_signals: scoreRes?.closure_signals || []
           });
 
           existingIds.add(details.place_id);
