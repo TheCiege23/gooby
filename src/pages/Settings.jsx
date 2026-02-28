@@ -23,8 +23,12 @@ import {
   Save,
   Loader2,
   CheckCircle,
-  Upload
+  Upload,
+  Star,
+  CreditCard
 } from "lucide-react";
+import CheckoutButton from "@/components/payments/CheckoutButton";
+import PaymentNotification from "@/components/payments/PaymentNotification";
 
 export default function Settings() {
   const [user, setUser] = useState(null);

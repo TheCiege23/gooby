@@ -5,8 +5,10 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Store, Package, BarChart3, Settings } from "lucide-react";
+import { Loader2, Store, Package, BarChart3, Settings, CreditCard } from "lucide-react";
 import SellerDashboardStats from "@/components/seller/SellerDashboardStats";
+import CheckoutButton from "@/components/payments/CheckoutButton";
+import PaymentNotification from "@/components/payments/PaymentNotification";
 
 // Lazy-import the MyStore and MyProducts inline forms
 import MyStoreForm from "@/components/seller/MyStoreForm";
