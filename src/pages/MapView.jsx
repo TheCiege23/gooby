@@ -37,11 +37,14 @@ function loadGoogleMapsScript() {
 
 export default function MapView() {
   const [searchLocation, setSearchLocation] = useState("");
-  const [mapCenter, setMapCenter] = useState([40.7128, -74.006]); // NYC default
   const [selectedStore, setSelectedStore] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [userLocation, setUserLocation] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const mapRef = useRef(null);
+  const markersRef = useRef({});
+  const infoWindowRef = useRef(null);
+  const mapDivRef = useRef(null);
 
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ['stores'],
@@ -65,12 +68,79 @@ export default function MapView() {
   const filteredStores = stores.filter(store => {
     if (!store.latitude || !store.longitude) return false;
     if (selectedCategory && store.category !== selectedCategory) return false;
+    if (searchLocation) {
+      const loc = searchLocation.toLowerCase();
+      return store.city?.toLowerCase().includes(loc) || store.state?.toLowerCase().includes(loc) || store.zip_code?.includes(loc);
+    }
     return true;
   });
 
-  const getProductCount = (storeId) => {
-    return products.filter(p => p.store_id === storeId).length;
-  };
+  const getProductCount = (storeId) => products.filter(p => p.store_id === storeId).length;
+
+  // Initialize Google Map
+  useEffect(() => {
+    loadGoogleMapsScript().then(() => setMapReady(true));
+  }, []);
+
+  useEffect(() => {
+    if (!mapReady || !mapDivRef.current) return;
+    const { Map } = window.google.maps;
+    mapRef.current = new Map(mapDivRef.current, {
+      center: { lat: 40.7128, lng: -74.006 },
+      zoom: 10,
+      mapId: "DEMO_MAP_ID",
+    });
+    infoWindowRef.current = new window.google.maps.InfoWindow();
+  }, [mapReady]);
+
+  // Update markers when filtered stores change
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const { AdvancedMarkerElement } = window.google.maps.marker || {};
+    if (!AdvancedMarkerElement) return;
+
+    // Remove old markers
+    Object.values(markersRef.current).forEach(m => m.map = null);
+    markersRef.current = {};
+
+    filteredStores.forEach(store => {
+      const pin = document.createElement('div');
+      pin.style.cssText = `
+        background: ${selectedStore?.id === store.id ? '#EF4444' : '#3B82F6'};
+        width: 32px; height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        cursor: pointer;
+      `;
+
+      const marker = new AdvancedMarkerElement({
+        map: mapRef.current,
+        position: { lat: store.latitude, lng: store.longitude },
+        content: pin,
+        title: store.name,
+      });
+
+      marker.addListener('click', () => {
+        setSelectedStore(store);
+        mapRef.current.panTo({ lat: store.latitude, lng: store.longitude });
+        const productCount = products.filter(p => p.store_id === store.id).length;
+        infoWindowRef.current.setContent(`
+          <div style="padding:8px; min-width:200px; font-family:sans-serif;">
+            <h3 style="font-weight:700; margin:0 0 4px 0;">${store.name}</h3>
+            <p style="color:#6B7280; margin:0 0 4px 0; font-size:13px;">${store.address || ''}</p>
+            ${store.discount_range ? `<p style="color:#DC2626; font-weight:600; margin:4px 0; font-size:13px;">${store.discount_range} OFF</p>` : ''}
+            <p style="color:#6B7280; font-size:12px; margin:4px 0;">${productCount} item${productCount !== 1 ? 's' : ''} available</p>
+            <a href="/StoreProfile?id=${store.id}" style="display:block; margin-top:8px; background:#3B82F6; color:white; text-align:center; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:13px;">View Store →</a>
+          </div>
+        `);
+        infoWindowRef.current.open(mapRef.current, marker);
+      });
+
+      markersRef.current[store.id] = marker;
+    });
+  }, [filteredStores, mapReady, selectedStore]);
 
   const getUserLocation = () => {
     setLoadingLocation(true);
@@ -78,24 +148,20 @@ export default function MapView() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setUserLocation([latitude, longitude]);
-          setMapCenter([latitude, longitude]);
+          mapRef.current?.panTo({ lat: latitude, lng: longitude });
+          mapRef.current?.setZoom(13);
           setLoadingLocation(false);
         },
-        () => {
-          setLoadingLocation(false);
-        }
+        () => setLoadingLocation(false)
       );
     }
   };
 
-  const customIcon = (color = '#3B82F6') => new L.DivIcon({
-    html: `<div style="background-color: ${color}; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"></div>`,
-    className: 'custom-marker',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  });
+  const handleStoreClick = (store) => {
+    setSelectedStore(store);
+    mapRef.current?.panTo({ lat: store.latitude, lng: store.longitude });
+    mapRef.current?.setZoom(14);
+  };
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col md:flex-row">
@@ -158,10 +224,7 @@ export default function MapView() {
                 className={`p-4 cursor-pointer transition-all hover:shadow-md ${
                   selectedStore?.id === store.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
                 }`}
-                onClick={() => {
-                  setSelectedStore(store);
-                  setMapCenter([store.latitude, store.longitude]);
-                }}
+                onClick={() => handleStoreClick(store)}
               >
                 <div className="flex gap-3">
                   <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -200,62 +263,14 @@ export default function MapView() {
         </div>
       </div>
 
-      {/* Map */}
+      {/* Google Map */}
       <div className="flex-1 relative">
-        <MapContainer
-          center={mapCenter}
-          zoom={12}
-          style={{ height: '100%', width: '100%' }}
-          className="z-0"
-        >
-          <ChangeView center={mapCenter} zoom={12} />
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {userLocation && (
-            <Marker 
-              position={userLocation}
-              icon={new L.DivIcon({
-                html: `<div style="background-color: #10B981; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
-                className: 'user-marker',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10],
-              })}
-            >
-              <Popup>Your location</Popup>
-            </Marker>
-          )}
-
-          {filteredStores.map((store) => (
-            <Marker
-              key={store.id}
-              position={[store.latitude, store.longitude]}
-              icon={customIcon(selectedStore?.id === store.id ? '#EF4444' : '#3B82F6')}
-              eventHandlers={{
-                click: () => setSelectedStore(store),
-              }}
-            >
-              <Popup>
-                <div className="p-2 min-w-[200px]">
-                  <h3 className="font-bold text-gray-900">{store.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{store.address}</p>
-                  {store.discount_range && (
-                    <p className="text-sm font-semibold text-red-600 mt-2">
-                      {store.discount_range} OFF
-                    </p>
-                  )}
-                  <Link to={createPageUrl(`StoreProfile?id=${store.id}`)}>
-                    <Button size="sm" className="w-full mt-3">
-                      View Store <ArrowRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        <div ref={mapDivRef} style={{ height: '100%', width: '100%' }} />
+        {!mapReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+          </div>
+        )}
 
         {/* Selected Store Card (Mobile) */}
         {selectedStore && (
@@ -278,12 +293,7 @@ export default function MapView() {
                     </Button>
                   </Link>
                 </div>
-                <button 
-                  onClick={() => setSelectedStore(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
+                <button onClick={() => setSelectedStore(null)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </Card>
           </div>
