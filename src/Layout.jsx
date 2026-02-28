@@ -55,7 +55,9 @@ export default function Layout({ children, currentPageName }) {
     { name: "Map View", page: "MapView", icon: MapPin },
   ];
 
-  const userNavItems = user?.role === "seller" ? [
+  const userNavItems = user?.role === "admin" ? [
+    { name: "Admin Imports", page: "AdminImports", icon: Bell },
+  ] : user?.role === "seller" ? [
     { name: "Dashboard", page: "SellerDashboard", icon: Store },
     { name: "My Products", page: "MyProducts", icon: Package },
   ] : [
