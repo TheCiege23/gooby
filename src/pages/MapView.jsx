@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,59 +13,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Navigation, Store, ArrowRight, Loader2 } from "lucide-react";
+import { MapPin, Navigation, Store, ArrowRight, Loader2 } from "lucide-react";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDg7MzjazFeTvgbDwEGKzdFQgu-5iKSxOE";
 
-function loadGoogleMapsScript() {
-  return new Promise((resolve) => {
-    if (window.google && window.google.maps) return resolve();
-    const existing = document.querySelector('script[data-gm-script]');
-    if (existing) {
-      existing.addEventListener('load', resolve);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=maps,marker,places&v=beta`;
-    script.async = true;
-    script.setAttribute('data-gm-script', 'true');
-    script.onload = resolve;
-    document.head.appendChild(script);
-  });
-}
-
 function loadExtendedComponents() {
   return new Promise((resolve) => {
-    if (customElements.get('gmpx-place-picker')) return resolve();
+    // Inject API loader once
+    if (!document.querySelector('gmpx-api-loader')) {
+      const loader = document.createElement('gmpx-api-loader');
+      loader.setAttribute('key', GOOGLE_MAPS_API_KEY);
+      loader.setAttribute('solution-channel', 'GMP_GE_mapsandplacesautocomplete_v2');
+      document.body.appendChild(loader);
+    }
+
+    if (customElements.get('gmp-map')) return resolve();
     const existing = document.querySelector('script[data-gmpx-script]');
-    if (existing) { existing.addEventListener('load', resolve); return; }
+    if (existing) {
+      customElements.whenDefined('gmp-map').then(resolve);
+      return;
+    }
     const script = document.createElement("script");
     script.type = "module";
     script.src = "https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js";
     script.setAttribute('data-gmpx-script', 'true');
-    script.onload = resolve;
     document.head.appendChild(script);
-
-    // Also inject the API loader element once
-    const loader = document.createElement('gmpx-api-loader');
-    loader.setAttribute('key', GOOGLE_MAPS_API_KEY);
-    loader.setAttribute('solution-channel', 'GMP_GE_placepicker_v2');
-    document.body.appendChild(loader);
+    customElements.whenDefined('gmp-map').then(resolve);
   });
 }
 
 export default function MapView() {
-  const [searchLocation, setSearchLocation] = useState("");
   const [selectedStore, setSelectedStore] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
-  const [mapReady, setMapReady] = useState(false);
-  const [gmpxReady, setGmpxReady] = useState(false);
-  const mapRef = useRef(null);
-  const markersRef = useRef({});
-  const infoWindowRef = useRef(null);
-  const mapDivRef = useRef(null);
+  const [ready, setReady] = useState(false);
+  const gmpMapRef = useRef(null);
   const placePickerRef = useRef(null);
+  const infoWindowRef = useRef(null);
+  const markersRef = useRef({});
 
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ['stores'],
@@ -90,49 +74,67 @@ export default function MapView() {
   const filteredStores = stores.filter(store => {
     if (!store.latitude || !store.longitude) return false;
     if (selectedCategory && store.category !== selectedCategory) return false;
-    if (searchLocation) {
-      const loc = searchLocation.toLowerCase();
-      return store.city?.toLowerCase().includes(loc) || store.state?.toLowerCase().includes(loc) || store.zip_code?.includes(loc);
-    }
     return true;
   });
 
   const getProductCount = (storeId) => products.filter(p => p.store_id === storeId).length;
 
-  // Initialize Google Map + Extended Components
+  // Load extended components
   useEffect(() => {
-    Promise.all([loadGoogleMapsScript(), loadExtendedComponents()]).then(() => {
-      setMapReady(true);
-      setGmpxReady(true);
-    });
+    loadExtendedComponents().then(() => setReady(true));
   }, []);
 
+  // Setup place picker listener after ready
   useEffect(() => {
-    if (!mapReady || !mapDivRef.current) return;
-    const { Map } = window.google.maps;
-    mapRef.current = new Map(mapDivRef.current, {
-      center: { lat: 40.7128, lng: -74.006 },
-      zoom: 10,
-      mapId: "DEMO_MAP_ID",
-    });
-    infoWindowRef.current = new window.google.maps.InfoWindow();
-  }, [mapReady]);
+    if (!ready) return;
 
-  // Update markers when filtered stores change
+    const picker = placePickerRef.current;
+    if (!picker) return;
+
+    const handlePlaceChange = () => {
+      const place = picker.value;
+      const map = gmpMapRef.current;
+      if (!map) return;
+
+      if (!place.location) return;
+
+      const innerMap = map.innerMap;
+      if (place.viewport) {
+        innerMap.fitBounds(place.viewport);
+      } else {
+        map.center = place.location;
+        map.zoom = 14;
+      }
+    };
+
+    picker.addEventListener('gmpx-placechange', handlePlaceChange);
+    return () => picker.removeEventListener('gmpx-placechange', handlePlaceChange);
+  }, [ready]);
+
+  // Add/update markers when filtered stores change
   useEffect(() => {
-    if (!mapReady || !mapRef.current) return;
-    const { AdvancedMarkerElement } = window.google.maps.marker || {};
+    if (!ready || !gmpMapRef.current) return;
+
+    const map = gmpMapRef.current;
+    const innerMap = map.innerMap;
+    if (!innerMap) return;
+
+    const { AdvancedMarkerElement } = window.google?.maps?.marker || {};
     if (!AdvancedMarkerElement) return;
 
+    if (!infoWindowRef.current) {
+      infoWindowRef.current = new window.google.maps.InfoWindow();
+    }
+
     // Remove old markers
-    Object.values(markersRef.current).forEach(m => m.map = null);
+    Object.values(markersRef.current).forEach(m => (m.map = null));
     markersRef.current = {};
 
     filteredStores.forEach(store => {
       const pin = document.createElement('div');
       pin.style.cssText = `
         background: ${selectedStore?.id === store.id ? '#EF4444' : '#3B82F6'};
-        width: 32px; height: 32px;
+        width: 30px; height: 30px;
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         border: 3px solid white;
@@ -141,7 +143,7 @@ export default function MapView() {
       `;
 
       const marker = new AdvancedMarkerElement({
-        map: mapRef.current,
+        map: innerMap,
         position: { lat: store.latitude, lng: store.longitude },
         content: pin,
         title: store.name,
@@ -149,7 +151,7 @@ export default function MapView() {
 
       marker.addListener('click', () => {
         setSelectedStore(store);
-        mapRef.current.panTo({ lat: store.latitude, lng: store.longitude });
+        innerMap.panTo({ lat: store.latitude, lng: store.longitude });
         const productCount = products.filter(p => p.store_id === store.id).length;
         infoWindowRef.current.setContent(`
           <div style="padding:8px; min-width:200px; font-family:sans-serif;">
@@ -160,32 +162,35 @@ export default function MapView() {
             <a href="/StoreProfile?id=${store.id}" style="display:block; margin-top:8px; background:#3B82F6; color:white; text-align:center; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:13px;">View Store →</a>
           </div>
         `);
-        infoWindowRef.current.open(mapRef.current, marker);
+        infoWindowRef.current.open(innerMap, marker);
       });
 
       markersRef.current[store.id] = marker;
     });
-  }, [filteredStores, mapReady, selectedStore]);
+  }, [filteredStores, ready, selectedStore, products]);
 
   const getUserLocation = () => {
     setLoadingLocation(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          mapRef.current?.panTo({ lat: latitude, lng: longitude });
-          mapRef.current?.setZoom(13);
-          setLoadingLocation(false);
-        },
-        () => setLoadingLocation(false)
-      );
-    }
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        const map = gmpMapRef.current;
+        if (map) {
+          map.center = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          map.zoom = 13;
+        }
+        setLoadingLocation(false);
+      },
+      () => setLoadingLocation(false)
+    );
   };
 
   const handleStoreClick = (store) => {
     setSelectedStore(store);
-    mapRef.current?.panTo({ lat: store.latitude, lng: store.longitude });
-    mapRef.current?.setZoom(14);
+    const map = gmpMapRef.current;
+    if (map) {
+      map.center = { lat: store.latitude, lng: store.longitude };
+      map.zoom = 14;
+    }
   };
 
   return (
@@ -194,65 +199,33 @@ export default function MapView() {
       <div className="w-full md:w-96 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <h1 className="text-xl font-bold text-gray-900 mb-4">Find Stores Near You</h1>
-          
-          <div className="space-y-3">
-            <div className="relative">
-              {gmpxReady ? (
-                <gmpx-place-picker
-                  ref={placePickerRef}
-                  placeholder="Search by city or address..."
-                  style={{ width: '100%', '--gmpx-color-surface': '#fff', '--gmpx-font-family-base': 'inherit' }}
-                  onGmpxPlaceChange={(e) => {
-                    const place = placePickerRef.current?.value;
-                    if (place?.geometry?.location) {
-                      const lat = place.geometry.location.lat();
-                      const lng = place.geometry.location.lng();
-                      mapRef.current?.panTo({ lat, lng });
-                      mapRef.current?.setZoom(13);
-                      setSearchLocation(place.formattedAddress || '');
-                    }
-                  }}
-                />
+
+          <div className="flex gap-2">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="flex-1 rounded-xl">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(cat => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              onClick={getUserLocation}
+              disabled={loadingLocation}
+              className="rounded-xl"
+            >
+              {loadingLocation ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    placeholder="Search by city or zip..."
-                    value={searchLocation}
-                    onChange={(e) => setSearchLocation(e.target.value)}
-                    className="pl-10 rounded-xl"
-                  />
-                </div>
+                <Navigation className="w-5 h-5" />
               )}
-            </div>
-
-            <div className="flex gap-2">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="flex-1 rounded-xl">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button 
-                variant="outline" 
-                onClick={getUserLocation}
-                disabled={loadingLocation}
-                className="rounded-xl"
-              >
-                {loadingLocation ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Navigation className="w-5 h-5" />
-                )}
-              </Button>
-            </div>
+            </Button>
           </div>
         </div>
 
@@ -308,18 +281,36 @@ export default function MapView() {
         </div>
       </div>
 
-      {/* Google Map */}
+      {/* Map with built-in place picker slot */}
       <div className="flex-1 relative">
-        <div ref={mapDivRef} style={{ height: '100%', width: '100%' }} />
-        {!mapReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+        {!ready && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
             <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
           </div>
         )}
 
+        {ready && (
+          <gmp-map
+            ref={gmpMapRef}
+            center="40.7128,-74.006"
+            zoom="10"
+            map-id="DEMO_MAP_ID"
+            style={{ width: '100%', height: '100%' }}
+          >
+            <div slot="control-block-start-inline-start" style={{ padding: '10px' }}>
+              <gmpx-place-picker
+                ref={placePickerRef}
+                placeholder="Search for a city or address..."
+                style={{ width: '320px' }}
+              />
+            </div>
+            <gmp-advanced-marker></gmp-advanced-marker>
+          </gmp-map>
+        )}
+
         {/* Selected Store Card (Mobile) */}
         {selectedStore && (
-          <div className="absolute bottom-4 left-4 right-4 md:hidden">
+          <div className="absolute bottom-4 left-4 right-4 md:hidden z-10">
             <Card className="p-4 bg-white shadow-xl">
               <div className="flex gap-3">
                 <div className="w-16 h-16 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
