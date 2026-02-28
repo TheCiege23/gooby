@@ -49,12 +49,22 @@
  */
 import Home from './pages/Home';
 import Browse from './pages/Browse';
+import MapView from './pages/MapView';
+import StoreProfile from './pages/StoreProfile';
+import ProductDetail from './pages/ProductDetail';
+import Settings from './pages/Settings';
+import MyStore from './pages/MyStore';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Home": Home,
     "Browse": Browse,
+    "MapView": MapView,
+    "StoreProfile": StoreProfile,
+    "ProductDetail": ProductDetail,
+    "Settings": Settings,
+    "MyStore": MyStore,
 }
 
 export const pagesConfig = {
