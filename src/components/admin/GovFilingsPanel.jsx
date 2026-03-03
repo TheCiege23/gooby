@@ -67,6 +67,25 @@ export default function GovFilingsPanel() {
     setFiles(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const handleScanWebSources = async () => {
+    setScanningWeb(true);
+    setError(null);
+    try {
+      const res = await base44.functions.invoke("scanGovernmentFilings", {});
+      if (res.data?.error) throw new Error(res.data.error);
+      setResult({
+        totalImported: res.data.imported || 0,
+        totalSkipped: res.data.skipped || 0,
+        totalOutOfState: res.data.out_of_state || 0,
+        files: [],
+      });
+      queryClient.invalidateQueries({ queryKey: ["imported-stores"] });
+    } catch (err) {
+      setError(err.message || "Government web scan failed");
+    }
+    setScanningWeb(false);
+  };
+
   const handleImport = async () => {
     if (files.length === 0) return;
     setProcessing(true);
