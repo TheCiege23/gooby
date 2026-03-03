@@ -16,6 +16,7 @@ import {
   Package,
   Home
 } from "lucide-react";
+import AIChatBubble from "@/components/buyer/AIChatBubble";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -222,6 +223,8 @@ export default function Layout({ children, currentPageName }) {
       <main className="flex-1">
         {children}
       </main>
+
+      <AIChatBubble isAuthenticated={isAuthenticated} />
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 mt-auto">
