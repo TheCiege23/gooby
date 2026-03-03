@@ -70,7 +70,7 @@ Return ONLY stores confirmed to be closing or already closed in 2026. Do NOT inc
                     city: { type: "string" },
                     state: { type: "string", description: "2-letter state code: NY, NJ, CT, or PA" },
                     zip_code: { type: "string" },
-                    category: { type: "string", enum: ["clothing", "electronics", "furniture", "home_goods", "sports", "toys", "books", "jewelry", "other"] },
+                    category: { type: "string", enum: ["clothing", "electronics", "shoes", "accessories", "food", "furniture", "home_goods", "sports", "toys", "books", "jewelry", "other"] },
                     closing_date: { type: "string" },
                     source_note: { type: "string" },
                   },
