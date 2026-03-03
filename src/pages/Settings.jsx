@@ -44,16 +44,7 @@ export default function Settings() {
 
   const [becomeSellerMode, setBecomeSellerMode] = useState(false);
 
-  const categories = [
-    { label: "Clothing", value: "clothing" },
-    { label: "Electronics", value: "electronics" },
-    { label: "Furniture", value: "furniture" },
-    { label: "Home Goods", value: "home_goods" },
-    { label: "Sports", value: "sports" },
-    { label: "Books", value: "books" },
-    { label: "Jewelry", value: "jewelry" },
-    { label: "Toys", value: "toys" },
-  ];
+  const categories = CORE_CATEGORIES;
 
   useEffect(() => {
     loadUser();
