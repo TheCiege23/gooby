@@ -43,12 +43,18 @@ export default function Home() {
 
   const { data: featuredProducts = [], isLoading: loadingProducts } = useQuery({
     queryKey: ['featuredProducts'],
-    queryFn: () => base44.entities.Product.filter({ is_available: true }, '-created_date', 8),
+    queryFn: async () => {
+      const rows = await base44.entities.Product.list('-created_date', 500);
+      return rows.filter((p) => p.is_available !== false);
+    },
   });
 
   const { data: stores = [], isLoading: loadingStores } = useQuery({
     queryKey: ['stores'],
-    queryFn: () => base44.entities.Store.filter({ is_active: true }, '-created_date', 6),
+    queryFn: async () => {
+      const rows = await base44.entities.Store.list('-created_date', 300);
+      return rows.filter((s) => s.is_active !== false);
+    },
   });
 
   const { data: storeProducts = {} } = useQuery({
@@ -218,7 +224,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {featuredProducts.slice(0, 8).map((product) => (
+            {featuredProducts.map((product) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
@@ -254,7 +260,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6">
-            {stores.slice(0, 6).map((store) => (
+            {stores.map((store) => (
               <StoreCard key={store.id} store={store} />
             ))}
           </div>
