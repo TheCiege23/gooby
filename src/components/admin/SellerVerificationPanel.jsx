@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, ShieldAlert, FileText, CheckCircle, X } from "lucide-react";
+import { ShieldCheck, FileText, CheckCircle, X } from "lucide-react";
 
 export default function SellerVerificationPanel() {
   const queryClient = useQueryClient();
