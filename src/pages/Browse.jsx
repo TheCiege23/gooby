@@ -42,6 +42,12 @@ export default function Browse() {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || "all");
   const [selectedState, setSelectedState] = useState("all");
+
+  useEffect(() => {
+    if (!EXTENDED_CATEGORIES.some((c) => c.value === selectedCategory) && selectedCategory !== "all") {
+      setSelectedCategory("all");
+    }
+  }, [selectedCategory]);
   const [locationFilter, setLocationFilter] = useState(urlParams.get('location') || '');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [minDiscount, setMinDiscount] = useState(0);
