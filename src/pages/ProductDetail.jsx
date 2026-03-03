@@ -18,6 +18,7 @@ import {
   Navigation
 } from "lucide-react";
 import RecentlyViewedTracker from "@/components/buyer/RecentlyViewedTracker";
+import StoreMessageButton from "@/components/store/StoreMessageButton";
 
 export default function ProductDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -272,6 +273,7 @@ export default function ProductDetail() {
               <Share2 className="w-5 h-5 mr-2" />
               Share
             </Button>
+            {store && <StoreMessageButton store={store} productId={productId} />}
           </div>
 
           {/* Store Card */}
@@ -297,6 +299,9 @@ export default function ProductDetail() {
                 <Link to={createPageUrl(`StoreProfile?id=${store.id}`)} className="flex-1">
                   <Button variant="outline" className="w-full bg-white">View Store</Button>
                 </Link>
+                <div className="flex-1">
+                  <StoreMessageButton store={store} productId={productId} />
+                </div>
                 {store.latitude && store.longitude && (
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`}
