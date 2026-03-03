@@ -4,7 +4,6 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, MapPin, Loader2, RefreshCw, Navigation, X } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 
