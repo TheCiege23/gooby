@@ -60,6 +60,7 @@ import SavedDeals from './pages/SavedDeals';
 import SellerDashboard from './pages/SellerDashboard';
 import Settings from './pages/Settings';
 import StoreProfile from './pages/StoreProfile';
+import Terms from './pages/Terms';
 import __Layout from './Layout.jsx';
 
 
@@ -77,6 +78,7 @@ export const PAGES = {
     "SellerDashboard": SellerDashboard,
     "Settings": Settings,
     "StoreProfile": StoreProfile,
+    "Terms": Terms,
 }
 
 export const pagesConfig = {
