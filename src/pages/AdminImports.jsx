@@ -27,6 +27,7 @@ import {
   Database,
   Search,
   Landmark,
+  Bell,
 } from "lucide-react";
 import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
@@ -37,6 +38,7 @@ import WebSearchPanel from "@/components/admin/WebSearchPanel";
 import GovFilingsPanel from "@/components/admin/GovFilingsPanel";
 import SafeGraphApiPanel from "@/components/admin/SafeGraphApiPanel";
 import DataBankImportPanel from "@/components/admin/DataBankImportPanel";
+import EmailSettingsPanel from "@/components/admin/EmailSettingsPanel";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -204,6 +206,7 @@ export default function AdminImports() {
           { id: "overpass", label: "OSM Scanner", icon: Globe },
           { id: "websearch", label: "Web Search", icon: Search },
           { id: "govfilings", label: "Gov Filings", icon: Landmark },
+          { id: "email", label: "Email & Automations", icon: Mail },
           { id: "flagged", label: "Flagged Listings", icon: Flag },
           { id: "verification", label: "Seller Verification", icon: ShieldCheck },
         ].map(({ id, label, icon: Icon }) => (
@@ -219,6 +222,7 @@ export default function AdminImports() {
         ))}
       </div>
 
+      {activeSection === "email" && <EmailSettingsPanel />}
       {activeSection === "flagged" && <FlaggedProductsPanel />}
       {activeSection === "verification" && <SellerVerificationPanel />}
       {activeSection === "coresight" && <CoresightImportPanel />}
