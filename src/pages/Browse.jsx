@@ -40,7 +40,6 @@ export default function Browse() {
   const initialCategory = urlParams.get('category') || '';
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || "all");
   const [selectedState, setSelectedState] = useState("all");
   const [locationFilter, setLocationFilter] = useState(urlParams.get('location') || '');
