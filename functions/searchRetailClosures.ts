@@ -51,7 +51,7 @@ For each store closure you find, extract:
 - Specific city and state (must be in NY, NJ, CT, or PA)
 - Street address if available
 - Zip code if available
-- Category (clothing, electronics, furniture, home_goods, sports, toys, books, jewelry, or other)
+- Category (clothing, electronics, shoes, accessories, food, furniture, home_goods, sports, toys, books, jewelry, or other)
 - Closing date if mentioned (YYYY-MM-DD format)
 - Source/context snippet (brief, 1 sentence max)
 
