@@ -23,8 +23,7 @@ import {
   Loader2,
   CheckCircle,
   Upload,
-  Star,
-  CreditCard
+  Star
 } from "lucide-react";
 import CheckoutButton from "@/components/payments/CheckoutButton";
 import PaymentNotification from "@/components/payments/PaymentNotification";
