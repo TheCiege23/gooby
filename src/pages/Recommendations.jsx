@@ -24,7 +24,7 @@ export default function Recommendations() {
   const loadUser = async () => {
     const authenticated = await base44.auth.isAuthenticated();
     if (!authenticated) {
-      base44.auth.redirectToLogin();
+      window.location.assign(`/login?from=${encodeURIComponent(window.location.href)}`);
       return;
     }
 
