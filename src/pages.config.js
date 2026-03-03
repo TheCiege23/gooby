@@ -61,6 +61,7 @@ import SellerDashboard from './pages/SellerDashboard';
 import Settings from './pages/Settings';
 import StoreProfile from './pages/StoreProfile';
 import Terms from './pages/Terms';
+import Landing from './pages/Landing';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +80,7 @@ export const PAGES = {
     "Settings": Settings,
     "StoreProfile": StoreProfile,
     "Terms": Terms,
+    "Landing": Landing,
 }
 
 export const pagesConfig = {
