@@ -81,9 +81,9 @@ export default function Layout({ children, currentPageName }) {
             {/* Logo */}
             <Link to={isAuthenticated ? createPageUrl("Home") : "/"} className="flex items-center gap-2">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69a300f6b5fff3cc73e48948/a196f48f9_grok-image-65c74a1b-becc-4921-b316-b80dfc9dd896.png"
+                src="/gooby-logo.png"
                 alt="GOOBY"
-                className="h-16 w-auto"
+                className="h-14 w-auto object-contain"
               />
             </Link>
 
@@ -225,9 +225,9 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69a300f6b5fff3cc73e48948/a196f48f9_grok-image-65c74a1b-becc-4921-b316-b80dfc9dd896.png"
+              src="/gooby-logo.png"
               alt="GOOBY"
-              className="h-12 w-auto"
+              className="h-10 w-auto object-contain"
             />
             <div className="text-sm text-gray-500 flex items-center gap-3">
               <p>© 2024 GOOBY. Find amazing deals from closing stores near you.</p>
