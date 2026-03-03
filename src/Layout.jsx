@@ -83,7 +83,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to={createPageUrl("Home")} className="flex items-center gap-2">
+            <Link to={isAuthenticated ? createPageUrl("Home") : "/"} className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
                 <span className="text-white font-black text-lg">G</span>
               </div>
