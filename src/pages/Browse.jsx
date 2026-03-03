@@ -124,8 +124,9 @@ export default function Browse() {
 
     // State filter
     const matchesState = !selectedState || store?.state === selectedState;
+    const matchesTargetState = isTargetState(store?.state);
 
-    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState;
+    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState && matchesTargetState;
   }).map(p => ({
     ...p,
     distance: calculateDistance(storeMap[p.store_id]?.latitude, storeMap[p.store_id]?.longitude)
