@@ -10,8 +10,6 @@ import {
   MapPin,
   Phone,
   Mail,
-  Calendar,
-  Clock,
   Store,
   Heart,
   Share2,
