@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import GoobyWordmark from "@/components/brand/GoobyWordmark";
 
 export default function Landing() {
   const [zipCode, setZipCode] = useState("");
@@ -18,7 +19,7 @@ export default function Landing() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-white to-blue-50">
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">GOOBY</h1>
+        <div className="mb-4"><GoobyWordmark large className="justify-center" /></div>
         <p className="text-lg text-gray-600 mb-8">
           Discover closing-store deals in NY, NJ, CT, and PA. Search by zip code, browse by category,
           and save on clothing, electronics, shoes, accessories, and food.
