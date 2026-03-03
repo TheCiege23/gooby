@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const TARGET_STATES = new Set(["NY", "NJ", "CT", "PA"]);
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -21,29 +23,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Store not found" }, { status: 404 });
     }
 
-    // Send email alert
+    const stateCode = String(store.state || "").toUpperCase();
+    if (!TARGET_STATES.has(stateCode)) {
+      return Response.json({ error: `Store state ${stateCode} is outside NY/NJ/CT/PA` }, { status: 422 });
+    }
+
+    const outreachEmail = store.email || user.email;
+
     await base44.asServiceRole.integrations.Core.SendEmail({
-      to: user.email, // In production, this would be the store owner's contact email
-      subject: `Is ${store.name} closing? List your inventory on GOOBY`,
-      body: `
-Hi there,
-
-We noticed that ${store.name} (${store.address}) may be closing${store.business_status === "CLOSED_PERMANENTLY" ? " permanently" : " temporarily"}.
-
-If you're looking to sell your remaining inventory fast, GOOBY is the #1 platform connecting closing retail stores with motivated buyers.
-
-✅ List your products in minutes
-✅ Reach thousands of local shoppers
-✅ Get paid quickly — no long-term commitments
-
-👉 Sign up now at https://gooby.app and start listing today.
-
-The GOOBY Team
-      `.trim(),
+      to: outreachEmail,
+      subject: `GOOBY seller invite for ${store.name} (${stateCode})`,
+      body: `Hi there,\n\nWe noticed ${store.name} (${store.address || "address not provided"}, ${store.city || ""}, ${stateCode}) may be closing.\n\nGOOBY helps stores in NY/NJ/CT/PA liquidate inventory quickly in core demand categories: clothing, electronics, shoes, accessories, and food.\n\nWhy join:\n• Publish listings in minutes\n• Reach local shoppers fast\n• Receive buyer demand insights\n\nCreate your seller profile: https://gooby.app\n\n— GOOBY Team`,
     });
 
-    // Mark email as sent
-    await base44.asServiceRole.entities.ImportedStore.update(importedStoreId, { email_sent: true });
+    await base44.asServiceRole.entities.ImportedStore.update(importedStoreId, {
+      email_sent: true,
+      outreach_email: outreachEmail,
+      outreach_sent_at: new Date().toISOString(),
+    });
 
     return Response.json({ success: true });
   } catch (error) {
