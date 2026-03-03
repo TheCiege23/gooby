@@ -51,6 +51,7 @@ import AdminImports from './pages/AdminImports';
 import Browse from './pages/Browse';
 import DealAlerts from './pages/DealAlerts';
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import MapView from './pages/MapView';
 import MyProducts from './pages/MyProducts';
 import MyStore from './pages/MyStore';
@@ -61,7 +62,6 @@ import SellerDashboard from './pages/SellerDashboard';
 import Settings from './pages/Settings';
 import StoreProfile from './pages/StoreProfile';
 import Terms from './pages/Terms';
-import Landing from './pages/Landing';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +70,7 @@ export const PAGES = {
     "Browse": Browse,
     "DealAlerts": DealAlerts,
     "Home": Home,
+    "Landing": Landing,
     "MapView": MapView,
     "MyProducts": MyProducts,
     "MyStore": MyStore,
@@ -80,7 +81,6 @@ export const PAGES = {
     "Settings": Settings,
     "StoreProfile": StoreProfile,
     "Terms": Terms,
-    "Landing": Landing,
 }
 
 export const pagesConfig = {
