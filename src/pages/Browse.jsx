@@ -150,7 +150,7 @@ export default function Browse() {
       store.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       store.city?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = !selectedCategory || store.category === selectedCategory;
+    const matchesCategory = !selectedCategory || normalizeCategory(store.category) === selectedCategory;
 
     const loc = locationFilter.toLowerCase();
     const matchesLocation = !locationFilter ||
@@ -159,8 +159,9 @@ export default function Browse() {
       store.zip_code?.includes(loc);
 
     const matchesState = !selectedState || store.state === selectedState;
+    const matchesTargetState = isTargetState(store.state);
 
-    return matchesSearch && matchesCategory && matchesLocation && matchesState;
+    return matchesSearch && matchesCategory && matchesLocation && matchesState && matchesTargetState;
   }).map(s => ({
     ...s,
     distance: calculateDistance(s.latitude, s.longitude)
