@@ -20,7 +20,6 @@ import {
   Database,
   Search,
   Landmark,
-  Bell,
 } from "lucide-react";
 import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
