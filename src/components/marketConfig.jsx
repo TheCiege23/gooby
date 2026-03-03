@@ -1,4 +1,4 @@
-// NEW: shared market + category config for NY/NJ/CT/PA rollout
+// Shared market + category config for NY/NJ/CT/PA rollout
 export const TARGET_STATES = ["NY", "NJ", "CT", "PA"];
 
 export const CORE_CATEGORIES = [
