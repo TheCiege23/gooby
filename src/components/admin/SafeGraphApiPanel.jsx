@@ -3,7 +3,6 @@ import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, Loader2, Info, Play, Database } from "lucide-react";
 
 const STATES = ["NY", "NJ", "CT", "PA"];
