@@ -8,14 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
-  MapPin, 
   Tag, 
   Store, 
   Sparkles, 
   ArrowRight,
   TrendingDown,
-  Clock,
-  Star,
   Flag
 } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
