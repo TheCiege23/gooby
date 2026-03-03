@@ -79,18 +79,6 @@ Deno.serve(async (req) => {
         discount_range: s.discount_range,
       }));
 
-    const contextStr = `
-User Preferences:
-- Preferred categories: ${(currentUser?.preferred_categories || []).join(", ") || "none specified"}
-- Preferred location: ${currentUser?.preferred_location || "none specified"}
-
-Available Stores (${storeContext.length} total):
-${JSON.stringify(storeContext.slice(0, 20), null, 2)}
-
-Available Products (${productContext.length} total, ranked by relevance):
-${JSON.stringify(productContext.slice(0, 30), null, 2)}
-`;
-
     const llm = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: `You are GOOBY's shopping assistant.
 
@@ -98,12 +86,10 @@ Rules:
 - Only answer using products/stores in the provided context.
 - If user asks outside scope, politely say you can only help with listed products and stores.
 - Prioritize recommendations by user behavior: recently viewed, saved, preferred categories.
-- If location hint is provided, prioritize items in that area.
+- If locationHint is provided, prioritize items in that area.
 
 User question: ${question}
 Location hint: ${locationHint || "(none)"}
-
-${contextStr}
 
 Return concise helpful guidance and recommendations.`,
       response_json_schema: {
