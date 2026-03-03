@@ -1,0 +1,233 @@
+diff --git a/src/pages/Browse.jsx b/src/pages/Browse.jsx
+index 7894192b0bde47ed6e18d15fef548a64f16e20d6..4932abd06d628b8f93b78cdf8446b10e9d04af06 100644
+--- a/src/pages/Browse.jsx
++++ b/src/pages/Browse.jsx
+@@ -10,198 +10,192 @@ import {
+   SelectContent,
+   SelectItem,
+   SelectTrigger,
+   SelectValue,
+ } from "@/components/ui/select";
+ import {
+   Sheet,
+   SheetContent,
+   SheetHeader,
+   SheetTitle,
+   SheetTrigger,
+ } from "@/components/ui/sheet";
+ import { 
+   Search, 
+   SlidersHorizontal, 
+   X,
+   Grid3X3,
+   Store,
+   MapPin,
+   Flag
+ } from "lucide-react";
+ import ProductCard from "@/components/ui/ProductCard";
+ import StoreCard from "@/components/ui/StoreCard";
+ import AIMatchPanel from "@/components/buyer/AIMatchPanel";
+ import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
+-import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory, isTargetState } from "@/components/marketConfig";
++import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory } from "@/components/marketConfig";
+ 
+ export default function Browse() {
+   const urlParams = new URLSearchParams(window.location.search);
+   const initialSearch = urlParams.get('search') || '';
+   const initialCategory = urlParams.get('category') || '';
+ 
+   const [searchQuery, setSearchQuery] = useState(initialSearch);
+   const [selectedCategory, setSelectedCategory] = useState(initialCategory || "all");
+   const [selectedState, setSelectedState] = useState("all");
+   const [locationFilter, setLocationFilter] = useState(urlParams.get('location') || '');
+   const [priceRange, setPriceRange] = useState([0, 1000]);
+   const [minDiscount, setMinDiscount] = useState(0);
+   const [sortBy, setSortBy] = useState('proximity');
+   const [viewMode, setViewMode] = useState('products');
+   const [user, setUser] = useState(null);
+   const [reportOpen, setReportOpen] = useState(false);
+   const [savedProducts, setSavedProducts] = useState([]);
+   const [userLat, setUserLat] = useState(40.4594);
+   const [userLng, setUserLng] = useState(-74.3608);
+ 
+   useEffect(() => {
+     loadUser();
+     // Try to get user's actual location
+     navigator.geolocation?.getCurrentPosition(
+       (pos) => {
+         setUserLat(pos.coords.latitude);
+         setUserLng(pos.coords.longitude);
+       },
+       () => {
+         // Default to Sayreville, NJ
+       }
+     );
+   }, []);
+ 
+   const loadUser = async () => {
+     const authenticated = await base44.auth.isAuthenticated();
+     if (authenticated) {
+       const currentUser = await base44.auth.me();
+       setUser(currentUser);
+       setSavedProducts(currentUser.saved_products || []);
+     }
+   };
+ 
+   const { data: products = [], isLoading: loadingProducts } = useQuery({
+     queryKey: ['products'],
+-    queryFn: () => base44.entities.Product.filter({ is_available: true }),
++    queryFn: async () => {
++      const rows = await base44.entities.Product.list('-created_date', 1000);
++      return rows.filter((p) => p.is_available !== false);
++    },
+   });
+ 
+   const { data: stores = [], isLoading: loadingStores } = useQuery({
+     queryKey: ['stores'],
+     queryFn: async () => {
+-      const rows = await base44.entities.Store.filter({ is_active: true });
+-      return rows.filter((store) => isTargetState(store.state));
++      const rows = await base44.entities.Store.list('-created_date', 1000);
++      return rows.filter((store) => store.is_active !== false);
+     },
+   });
+ 
+   const { data: aiClosures = [] } = useQuery({
+     queryKey: ['ai-closures'],
+     queryFn: async () => {
+-      const rows = await base44.entities.ImportedStore.filter({ status: "approved" }, "-created_date", 100);
+-      return rows.filter((row) => isTargetState(row.state));
++      return base44.entities.ImportedStore.filter({ status: "approved" }, "-created_date", 300);
+     },
+   });
+ 
+   const categories = [{ label: "All Categories", value: "all" }, ...EXTENDED_CATEGORIES];
+ 
+   const calculateDistance = (lat, lng) => {
+     if (!lat || !lng) return Infinity;
+     const R = 3959;
+     const dLat = ((lat - userLat) * Math.PI) / 180;
+     const dLng = ((lng - userLng) * Math.PI) / 180;
+     const a = Math.sin(dLat / 2) ** 2 + Math.cos((userLat * Math.PI) / 180) * Math.cos((lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+     return R * c;
+   };
+ 
+   const storeMap = stores.reduce((acc, store) => {
+     acc[store.id] = store;
+     return acc;
+   }, {});
+ 
+   const filteredProducts = products.filter(product => {
+-    const matchesSearch = !searchQuery || 
++    const store = storeMap[product.store_id];
++    const matchesSearch = !searchQuery ||
+       product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+-      product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+-    
++      product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
++      store?.name?.toLowerCase().includes(searchQuery.toLowerCase());
++
+     const matchesCategory = selectedCategory === "all" || normalizeCategory(product.category) === selectedCategory;
+-    
+-    const matchesPrice = product.sale_price >= priceRange[0] && product.sale_price <= priceRange[1];
+-    
+-    const discount = product.discount_percent || 
++    const matchesPrice = Number(product.sale_price || 0) >= priceRange[0] && Number(product.sale_price || 0) <= priceRange[1];
++    const discount = product.discount_percent ||
+       (product.original_price ? Math.round(((product.original_price - product.sale_price) / product.original_price) * 100) : 0);
+     const matchesDiscount = discount >= minDiscount;
+ 
+-    // Location filter — match against store city/state/zip
+-    const store = storeMap[product.store_id];
+     const loc = locationFilter.toLowerCase();
+-    const matchesLocation = !locationFilter || 
++    const matchesLocation = !locationFilter ||
+       store?.city?.toLowerCase().includes(loc) ||
+       store?.state?.toLowerCase().includes(loc) ||
+-      store?.zip_code?.includes(loc);
++      String(store?.zip_code || "").includes(loc);
+ 
+-    // State filter
+     const matchesState = selectedState === "all" || store?.state === selectedState;
+-    const matchesTargetState = isTargetState(store?.state);
+ 
+-    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState && matchesTargetState;
+-  }).map(p => ({
++    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState;
++  }).map((p) => ({
+     ...p,
+     distance: calculateDistance(storeMap[p.store_id]?.latitude, storeMap[p.store_id]?.longitude)
+   })).sort((a, b) => {
+-    switch (sortBy) {
+-      case 'proximity':
+-        return a.distance - b.distance;
+-      case 'price_low':
+-        return a.sale_price - b.sale_price;
+-      case 'price_high':
+-        return b.sale_price - a.sale_price;
+-      case 'discount':
+-        return (b.discount_percent || 0) - (a.discount_percent || 0);
+-      default:
+-        return new Date(b.created_date) - new Date(a.created_date);
+-    }
++    if (sortBy === 'proximity') return a.distance - b.distance;
++    if (sortBy === 'newest') return new Date(b.created_date || 0) - new Date(a.created_date || 0);
++    if (sortBy === 'price_low') return Number(a.sale_price || 0) - Number(b.sale_price || 0);
++    if (sortBy === 'price_high') return Number(b.sale_price || 0) - Number(a.sale_price || 0);
++    if (sortBy === 'discount') return Number(b.discount_percent || 0) - Number(a.discount_percent || 0);
++    return 0;
+   });
+ 
+   const filteredStores = stores.filter(store => {
+     const matchesSearch = !searchQuery || 
+       store.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       store.city?.toLowerCase().includes(searchQuery.toLowerCase());
+     
+     const matchesCategory = selectedCategory === "all" || normalizeCategory(store.category) === selectedCategory;
+ 
+     const loc = locationFilter.toLowerCase();
+     const matchesLocation = !locationFilter ||
+       store.city?.toLowerCase().includes(loc) ||
+       store.state?.toLowerCase().includes(loc) ||
+       store.zip_code?.includes(loc);
+ 
+     const matchesState = selectedState === "all" || store.state === selectedState;
+-    const matchesTargetState = isTargetState(store.state);
+-
+-    return matchesSearch && matchesCategory && matchesLocation && matchesState && matchesTargetState;
++    return matchesSearch && matchesCategory && matchesLocation && matchesState;
+   }).map(s => ({
+     ...s,
+     distance: calculateDistance(s.latitude, s.longitude)
+   })).sort((a, b) => {
+     if (sortBy === 'proximity') return a.distance - b.distance;
++    if (sortBy === 'newest') return new Date(b.created_date || 0) - new Date(a.created_date || 0);
++    if (sortBy === 'price_low') return Number(a.sale_price || 0) - Number(b.sale_price || 0);
++    if (sortBy === 'price_high') return Number(b.sale_price || 0) - Number(a.sale_price || 0);
++    if (sortBy === 'discount') return Number(b.discount_percent || 0) - Number(a.discount_percent || 0);
+     return 0;
+   });
+ 
+   const handleSaveProduct = async (productId) => {
+     if (!user) return;
+     
+     const newSaved = savedProducts.includes(productId)
+       ? savedProducts.filter(id => id !== productId)
+       : [...savedProducts, productId];
+     
+     setSavedProducts(newSaved);
+     await base44.auth.updateMe({ saved_products: newSaved });
+   };
+ 
+   const clearFilters = () => {
+     setSearchQuery('');
+     setSelectedCategory('all');
+     setSelectedState('all');
+     setLocationFilter('');
+     setPriceRange([0, 1000]);
+     setMinDiscount(0);
+   };
+ 
+   const hasActiveFilters = searchQuery || selectedCategory !== "all" || selectedState !== "all" || locationFilter || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
+ 
