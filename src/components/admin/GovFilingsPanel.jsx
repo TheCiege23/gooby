@@ -192,9 +192,9 @@ Return all found entities as JSON.`,
         <div className="flex gap-3">
           <Info className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-indigo-800">
-            <p className="font-semibold mb-1">Manual Upload Only — No Automated Scraping</p>
+            <p className="font-semibold mb-1">Manual Upload + Optional AI Web Scan</p>
             <p className="text-indigo-700">
-              Upload Excel, CSV, or PDF files you have legally downloaded from government sources (SEC EDGAR, federal bankruptcy courts, state registries). AI parses the filings to extract retail store closures in <strong>NY, NJ, CT, PA</strong> and imports them as pending drafts for admin review. No automated external data pulls occur.
+              Upload Excel/CSV/PDF filings, or run an AI-assisted scan that teaches the model to prioritize federal/state filings plus Google-indexed corroboration for <strong>NY, NJ, CT, PA</strong>. Results are imported as pending drafts for admin review.
             </p>
           </div>
         </div>
