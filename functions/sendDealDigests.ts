@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // Focus geographies + retail categories for GOOBY rollout
 const TARGET_STATES = new Set(["NY", "NJ", "CT", "PA"]);
