@@ -32,6 +32,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
 import AIMatchPanel from "@/components/buyer/AIMatchPanel";
 import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
+import { EXTENDED_CATEGORIES, normalizeCategory, isTargetState } from "@/components/marketConfig";
 
 export default function Browse() {
   const urlParams = new URLSearchParams(window.location.search);
