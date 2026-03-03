@@ -233,9 +233,10 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <span className="text-lg font-bold text-gray-800">GOOBY</span>
             </div>
-            <p className="text-sm text-gray-500">
-              © 2024 GOOBY. Find amazing deals from closing stores near you.
-            </p>
+            <div className="text-sm text-gray-500 flex items-center gap-3">
+              <p>© 2024 GOOBY. Find amazing deals from closing stores near you.</p>
+              <Link to={createPageUrl("Terms")} className="text-blue-600 hover:underline">Terms</Link>
+            </div>
           </div>
         </div>
       </footer>
