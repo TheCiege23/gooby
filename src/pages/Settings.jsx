@@ -26,6 +26,7 @@ import {
   Star
 } from "lucide-react";
 import CheckoutButton from "@/components/payments/CheckoutButton";
+import { CORE_CATEGORIES, TARGET_STATES, normalizeCategory, isTargetState } from "@/components/marketConfig";
 import PaymentNotification from "@/components/payments/PaymentNotification";
 
 export default function Settings() {
