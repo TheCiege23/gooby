@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Navigation, Store, ArrowRight, Loader2 } from "lucide-react";
+import { MapPin, Navigation, Store, ArrowRight, Loader2, SendHorizontal, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory, isTargetState } from "@/components/marketConfig";
 
@@ -49,10 +49,11 @@ export default function MapView() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedState, setSelectedState] = useState("all");
   const [zipFilter, setZipFilter] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [mapMode, setMapMode] = useState("roadmap");
   const [ready, setReady] = useState(false);
   const gmpMapRef = useRef(null);
-  const placePickerRef = useRef(null);
   const infoWindowRef = useRef(null);
   const markersRef = useRef({});
   const clustersRef = useRef({});
@@ -106,32 +107,11 @@ export default function MapView() {
     loadExtendedComponents().then(() => setReady(true));
   }, []);
 
-  // Setup place picker listener after ready
   useEffect(() => {
-    if (!ready) return;
-
-    const picker = placePickerRef.current;
-    if (!picker) return;
-
-    const handlePlaceChange = () => {
-      const place = picker.value;
-      const map = gmpMapRef.current;
-      if (!map) return;
-
-      if (!place.location) return;
-
-      const innerMap = map.innerMap;
-      if (place.viewport) {
-        innerMap.fitBounds(place.viewport);
-      } else {
-        map.center = place.location;
-        map.zoom = 14;
-      }
-    };
-
-    picker.addEventListener('gmpx-placechange', handlePlaceChange);
-    return () => picker.removeEventListener('gmpx-placechange', handlePlaceChange);
-  }, [ready]);
+    const innerMap = gmpMapRef.current?.innerMap;
+    if (!ready || !innerMap) return;
+    innerMap.setMapTypeId(mapMode);
+  }, [ready, mapMode]);
 
   // Add/update markers when filtered stores/closures change
   useEffect(() => {
@@ -252,6 +232,24 @@ export default function MapView() {
     );
   };
 
+  const handleMapSearch = async () => {
+    const query = locationSearch.trim() || zipFilter.trim();
+    if (!query || !window.google?.maps?.Geocoder) return;
+
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: query }, (results, status) => {
+      const map = gmpMapRef.current;
+      if (!map || status !== "OK" || !results?.[0]) return;
+      const result = results[0];
+      if (result.geometry?.viewport && map.innerMap) {
+        map.innerMap.fitBounds(result.geometry.viewport);
+      } else if (result.geometry?.location) {
+        map.center = result.geometry.location;
+        map.zoom = 12;
+      }
+    });
+  };
+
   const handleStoreClick = (store) => {
     setSelectedStore(store);
     const map = gmpMapRef.current;
@@ -309,20 +307,33 @@ export default function MapView() {
               </SelectContent>
             </Select>
 
-            <Input
-              value={zipFilter}
-              onChange={(e) => setZipFilter(e.target.value.replace(/\D/g, "").slice(0, 5))}
-              placeholder="Zip code filter"
-              className="rounded-xl text-sm"
-            />
+            <div className="flex gap-2">
+              <Input
+                value={zipFilter}
+                onChange={(e) => setZipFilter(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                placeholder="Zip code filter"
+                className="rounded-xl text-sm"
+                inputMode="numeric"
+                maxLength={5}
+                onKeyDown={(e) => e.key === "Enter" && handleMapSearch()}
+              />
+              <Button variant="outline" className="rounded-xl" onClick={handleMapSearch}>
+                <SendHorizontal className="w-4 h-4" />
+              </Button>
+            </div>
 
             {/* State color legend */}
             <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100">
               {Object.entries(STATE_COLORS).map(([state, color]) => (
-                <div key={state} className="flex items-center gap-2 text-xs">
+                <button
+                  key={state}
+                  type="button"
+                  onClick={() => setSelectedState((prev) => prev === state ? "all" : state)}
+                  className={`flex items-center gap-2 text-xs rounded-lg px-2 py-1 border transition ${selectedState === state ? "border-blue-400 bg-blue-50" : "border-transparent hover:bg-gray-50"}`}
+                >
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
                   <span className="text-gray-600">{state}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -396,12 +407,33 @@ export default function MapView() {
             map-id="DEMO_MAP_ID"
             style={{ width: '100%', height: '100%' }}
           >
-            <div slot="control-block-start-inline-start" style={{ padding: '10px' }}>
-              <gmpx-place-picker
-                ref={placePickerRef}
-                placeholder="Search for a city or address..."
-                style={{ width: '320px' }}
-              />
+            <div slot="control-block-start-inline-start" style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}>
+                <button
+                  type="button"
+                  onClick={() => setMapMode('roadmap')}
+                  style={{ padding: '10px 18px', fontWeight: 600, background: mapMode === 'roadmap' ? '#E0ECFF' : 'white', border: 'none', cursor: 'pointer' }}
+                >
+                  Map
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapMode('hybrid')}
+                  style={{ padding: '10px 18px', fontWeight: 600, background: mapMode === 'hybrid' ? '#E0ECFF' : 'white', border: 'none', borderLeft: '1px solid #e5e7eb', cursor: 'pointer' }}
+                >
+                  Satellite
+                </button>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'white', borderRadius: '8px', padding: '0 12px', minWidth: '340px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}>
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  value={locationSearch}
+                  onChange={(e) => setLocationSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleMapSearch()}
+                  placeholder="Search for a city or address..."
+                  style={{ border: 'none', outline: 'none', padding: '10px', width: '100%', fontSize: '14px' }}
+                />
+              </div>
             </div>
             <gmp-advanced-marker></gmp-advanced-marker>
           </gmp-map>
