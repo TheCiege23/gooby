@@ -161,7 +161,7 @@ export default function Layout({ children, currentPageName }) {
                   onClick={() => base44.auth.redirectToLogin()}
                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
                 >
-                  Sign In
+                  Sign In / Sign Up
                 </Button>
               )}
 
