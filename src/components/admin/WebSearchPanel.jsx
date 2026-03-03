@@ -43,7 +43,7 @@ export default function WebSearchPanel() {
           <div className="text-sm text-blue-800">
             <p className="font-semibold mb-1">Automated Web Search for Retail Closures</p>
             <p className="text-blue-700 mb-2">
-              Runs <strong>11 targeted searches</strong> across NY, NJ, CT, and PA using live web data. AI extracts confirmed store closures and adds them to the pending queue.
+              Runs <strong>11 targeted searches</strong> across NY, NJ, CT, and PA using live web data. AI is tuned for clothing, electronics, shoes, food, and accessories closures from Google-indexed and federal/state sources.
             </p>
             <div className="flex items-center gap-2 text-blue-700">
               <Clock className="w-4 h-4" />
