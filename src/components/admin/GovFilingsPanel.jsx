@@ -172,7 +172,7 @@ Return all found entities as JSON.`,
           totalImported++;
         }
 
-        fileSkipped += (entities.length - fileImported - fileOOS - (entities.length - fileImported - fileOOS - fileSkipped));
+        // fileSkipped already tracked during dedupe checks
         fileResults.push({ name: file.name, extracted: entities.length, imported: fileImported, skipped: fileSkipped, out_of_state: fileOOS });
       }
 
