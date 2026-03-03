@@ -229,12 +229,11 @@ export default function Layout({ children, currentPageName }) {
       <footer className="bg-white border-t border-gray-100 mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">G</span>
-              </div>
-              <span className="text-lg font-bold text-gray-800">GOOBY</span>
-            </div>
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69a300f6b5fff3cc73e48948/a9dedf11b_5aa6bc17-16f3-467f-9da7-97372c9198cc.jpg"
+              alt="GOOBY"
+              className="h-8 w-auto"
+            />
             <div className="text-sm text-gray-500 flex items-center gap-3">
               <p>© 2024 GOOBY. Find amazing deals from closing stores near you.</p>
               <Link to={createPageUrl("Terms")} className="text-blue-600 hover:underline">Terms</Link>
