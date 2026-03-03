@@ -90,7 +90,7 @@ A marketplace platform for discovering and purchasing inventory from closing ret
 - Twilio initialization is lazy - it only validates credentials when an SMS is actually sent
 - Frontend uses `src/api/services.js` to call backend API endpoints
 - Automated closure scanning runs daily: full scan at 7am EST (12:00 UTC), partial scan at 12pm EST (17:00 UTC)
-- Full scan: all NewsAPI queries + all 5 X queries + 5 web queries; Partial scan: news + 2 X queries + 2 web queries
-- Scanner searches NewsAPI, X (Twitter) via Grok, and general web for store closures in NY/NJ/CT/PA
+- Full scan: all NewsAPI queries + all 5 X queries + all 4 Facebook queries + 5 web queries; Partial scan: news + 2 X queries + 1 Facebook query + 2 web queries
+- Scanner searches NewsAPI, X (Twitter), Facebook Marketplace, and general web via Grok for store closures in NY/NJ/CT/PA
 - Manual scans via POST /api/scanner/run with optional `{ mode: "full" | "partial" }`
 - Discovered closures are returned via API (not auto-saved to DB — admin review step)

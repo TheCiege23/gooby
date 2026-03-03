@@ -24,6 +24,13 @@ const X_SEARCH_QUERIES = [
   "shop shutting down New York New Jersey Connecticut Pennsylvania",
 ];
 
+const FB_SEARCH_QUERIES = [
+  "store closing sale Facebook Marketplace NYC OR \"New York\" OR NJ OR \"New Jersey\" OR CT OR PA",
+  "going out of business liquidation Facebook Marketplace tri-state area",
+  "retail store closing everything must go Facebook NYC NJ CT PA",
+  "shop shutting down inventory sale Facebook Marketplace New York New Jersey",
+];
+
 const EXTRACTION_PROMPT = `You are a retail closure intelligence analyst for the GOOBY platform.
 Given the following raw text data (from news articles, social media posts, or web search results),
 extract any retail store closures in NY, NJ, CT, or PA.
@@ -64,6 +71,32 @@ location details mentioned. If you find no relevant posts, say "No relevant post
     return result;
   } catch (err) {
     console.error("X search error:", err.message);
+    return null;
+  }
+}
+
+async function searchFacebookMarketplace(query) {
+  try {
+    const prompt = `Search Facebook Marketplace and Facebook groups for: "${query}"
+
+Look for recent Facebook Marketplace listings and Facebook group posts about retail store closures,
+going-out-of-business sales, liquidation events, store inventory clearances, or permanent store closings
+in New York, New Jersey, Connecticut, or Pennsylvania.
+
+Include listings where stores are selling off remaining inventory because they are closing.
+Also include posts from local community groups discussing nearby store closures.
+
+Provide details about any relevant listings or posts you find, including the store name,
+location, type of merchandise, and any closure details mentioned.
+If you find no relevant listings or posts, say "No relevant Facebook listings found."`;
+
+    const result = await chat(
+      [{ role: "user", content: prompt }],
+      { model: "grok-3-mini-fast", maxTokens: 2000 }
+    );
+    return result;
+  } catch (err) {
+    console.error("Facebook Marketplace search error:", err.message);
     return null;
   }
 }
@@ -125,7 +158,7 @@ export async function runClosureScan({ mode = "full" } = {}) {
   const startTime = Date.now();
   const allClosures = [];
   const seenKeys = new Set();
-  const sources = { news: 0, x: 0, web: 0 };
+  const sources = { news: 0, x: 0, facebook: 0, web: 0 };
 
   const isPartial = mode === "partial";
   console.log(`[ClosureScanner] Starting ${isPartial ? "partial" : "full"} scan...`);
@@ -165,6 +198,23 @@ export async function runClosureScan({ mode = "full" } = {}) {
       }
     }
     console.log(`[ClosureScanner] X/Twitter: found ${sources.x} unique closures`);
+
+    const fbQueries = isPartial ? FB_SEARCH_QUERIES.slice(0, 1) : FB_SEARCH_QUERIES;
+    for (const query of fbQueries) {
+      const fbResult = await searchFacebookMarketplace(query);
+      if (fbResult && !fbResult.includes("No relevant Facebook listings found")) {
+        const fbClosures = await extractClosuresFromText(fbResult);
+        for (const c of fbClosures) {
+          const key = `${c.name}|${c.city}|${c.state}`.toLowerCase();
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            allClosures.push({ ...c, discovered_via: "facebook_marketplace" });
+            sources.facebook++;
+          }
+        }
+      }
+    }
+    console.log(`[ClosureScanner] Facebook Marketplace: found ${sources.facebook} unique closures`);
 
     const webQueries = isPartial ? SEARCH_QUERIES.slice(0, 2) : SEARCH_QUERIES.slice(0, 5);
     for (const query of webQueries) {
