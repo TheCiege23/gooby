@@ -46,8 +46,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = async () => {
-    await base44.auth.logout();
-    window.location.href = window.location.origin + "/";
+    await base44.auth.logout("/");
   };
 
   const navItems = [
