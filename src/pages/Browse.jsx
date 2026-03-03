@@ -106,7 +106,7 @@ export default function Browse() {
       product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    const matchesCategory = !selectedCategory || normalizeCategory(product.category) === selectedCategory;
     
     const matchesPrice = product.sale_price >= priceRange[0] && product.sale_price <= priceRange[1];
     
