@@ -24,7 +24,6 @@ import {
   MapPin,
   Phone,
   Mail,
-  Calendar,
   Image,
   Package
 } from "lucide-react";
