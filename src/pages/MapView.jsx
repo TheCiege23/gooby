@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MapPin, Navigation, Store, ArrowRight, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory, isTargetState } from "@/components/marketConfig";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDg7MzjazFeTvgbDwEGKzdFQgu-5iKSxOE";
 
@@ -44,8 +46,9 @@ function loadExtendedComponents() {
 
 export default function MapView() {
   const [selectedStore, setSelectedStore] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedState, setSelectedState] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedState, setSelectedState] = useState("all");
+  const [zipFilter, setZipFilter] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [ready, setReady] = useState(false);
   const gmpMapRef = useRef(null);
@@ -69,11 +72,7 @@ export default function MapView() {
     queryFn: () => base44.entities.ImportedStore.filter({ status: "approved" }, "-created_date", 500),
   });
 
-  const categories = [
-    { label: "All Categories", value: "" },
-    { label: "Clothing & Fashion", value: "clothing" },
-    { label: "Electronics", value: "electronics" },
-  ];
+  const categories = [{ label: "All Categories", value: "all" }, ...EXTENDED_CATEGORIES];
 
   const STATE_COLORS = {
     NY: "#3B82F6",
@@ -84,13 +83,19 @@ export default function MapView() {
 
   const filteredStores = stores.filter(store => {
     if (!store.latitude || !store.longitude) return false;
-    if (selectedCategory && store.category !== selectedCategory) return false;
+    if (!isTargetState(store.state)) return false;
+    if (selectedCategory !== "all" && normalizeCategory(store.category) !== selectedCategory) return false;
+    if (selectedState !== "all" && store.state !== selectedState) return false;
+    if (zipFilter && !String(store.zip_code || "").includes(zipFilter)) return false;
     return true;
   });
 
   const filteredClosures = closures.filter(c => {
     if (!c.latitude || !c.longitude) return false;
-    if (selectedState && c.state !== selectedState) return false;
+    if (!isTargetState(c.state)) return false;
+    if (selectedState !== "all" && c.state !== selectedState) return false;
+    if (selectedCategory !== "all" && normalizeCategory(c.category) !== selectedCategory) return false;
+    if (zipFilter && !String(c.zip_code || "").includes(zipFilter)) return false;
     return true;
   });
 
@@ -297,13 +302,19 @@ export default function MapView() {
                 <SelectValue placeholder="Filter by state" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>All States</SelectItem>
-                <SelectItem value="NY">New York</SelectItem>
-                <SelectItem value="NJ">New Jersey</SelectItem>
-                <SelectItem value="CT">Connecticut</SelectItem>
-                <SelectItem value="PA">Pennsylvania</SelectItem>
+                <SelectItem value="all">All States</SelectItem>
+                {TARGET_STATES.map((stateCode) => (
+                  <SelectItem key={stateCode} value={stateCode}>{stateCode}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
+
+            <Input
+              value={zipFilter}
+              onChange={(e) => setZipFilter(e.target.value.replace(/\D/g, "").slice(0, 5))}
+              placeholder="Zip code filter"
+              className="rounded-xl text-sm"
+            />
 
             {/* State color legend */}
             <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100">
