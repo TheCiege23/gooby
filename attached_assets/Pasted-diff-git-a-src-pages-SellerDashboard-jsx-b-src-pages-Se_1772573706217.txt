@@ -1,0 +1,57 @@
+diff --git a/src/pages/SellerDashboard.jsx b/src/pages/SellerDashboard.jsx
+index bf0ff90ca41f365420812cafb7a9871d2125df9a..384794451013173cdea19c09e4cda605a3645df0 100644
+--- a/src/pages/SellerDashboard.jsx
++++ b/src/pages/SellerDashboard.jsx
+@@ -7,51 +7,51 @@ import { Button } from "@/components/ui/button";
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+ import { Loader2, Store, Package, BarChart3, Settings, CreditCard, TrendingUp } from "lucide-react";
+ import SellerDashboardStats from "@/components/seller/SellerDashboardStats";
+ import AnalyticsPanel from "@/components/seller/AnalyticsPanel";
+ import CheckoutButton from "@/components/payments/CheckoutButton";
+ import PaymentNotification from "@/components/payments/PaymentNotification";
+ 
+ // Lazy-import the MyStore and MyProducts inline forms
+ import MyStoreForm from "@/components/seller/MyStoreForm";
+ import MyProductsList from "@/components/seller/MyProductsList";
+ 
+ export default function SellerDashboard() {
+   const [user, setUser] = useState(null);
+   const [loading, setLoading] = useState(true);
+   const [activeTab, setActiveTab] = useState("overview");
+ 
+   const queryClient = useQueryClient();
+ 
+   useEffect(() => {
+     loadUser();
+   }, []);
+ 
+   const loadUser = async () => {
+     const authenticated = await base44.auth.isAuthenticated();
+     if (!authenticated) {
+-      base44.auth.redirectToLogin();
++      window.location.assign(`/login?from=${encodeURIComponent(window.location.href)}`);
+       return;
+     }
+ 
+     const currentUser = await base44.auth.me();
+     if (currentUser.role !== "seller") {
+       window.location.href = createPageUrl("Settings");
+       return;
+     }
+     setUser(currentUser);
+     setLoading(false);
+   };
+ 
+   const { data: store, isLoading: loadingStore } = useQuery({
+     queryKey: ["myStore", user?.id],
+     queryFn: async () => {
+       const stores = await base44.entities.Store.filter({ owner_id: user.id });
+       return stores[0] || null;
+     },
+     enabled: !!user?.id,
+   });
+ 
+   const { data: products = [], isLoading: loadingProducts } = useQuery({
+     queryKey: ["myProducts", store?.id],
+     queryFn: () => base44.entities.Product.filter({ store_id: store.id }),
+     enabled: !!store?.id,

@@ -14,7 +14,8 @@ import {
   LogOut,
   Settings,
   Package,
-  Home
+  Home,
+  Shield
 } from "lucide-react";
 import AIChatBubble from "@/components/buyer/AIChatBubble";
 import {
@@ -56,6 +57,7 @@ export default function Layout({ children, currentPageName }) {
 
   const userNavItems = user?.role === "admin" ? [
     { name: "Admin Imports", page: "AdminImports", icon: Bell },
+    { name: "Admin Panel", page: "AdminPanel", icon: Shield },
   ] : user?.role === "seller" ? [
     { name: "Dashboard", page: "SellerDashboard", icon: Store },
     { name: "My Products", page: "MyProducts", icon: Package },

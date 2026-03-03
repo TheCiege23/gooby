@@ -56,6 +56,16 @@ export const scannerService = {
     return res.json();
   },
 
+  async runScan(mode = "full") {
+    const res = await fetch(`${API_BASE}/scanner/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+
   async getStatus() {
     const res = await fetch(`${API_BASE}/scanner/status`);
     if (!res.ok) throw new Error((await res.json()).error);

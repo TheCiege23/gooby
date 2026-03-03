@@ -1,0 +1,57 @@
+diff --git a/src/pages/Recommendations.jsx b/src/pages/Recommendations.jsx
+index ae42cd9682b70ec8dd2a61fa17132220b45a4a37..c9da0e1d0ea7bbf00ec722e1afbccb2b379387ea 100644
+--- a/src/pages/Recommendations.jsx
++++ b/src/pages/Recommendations.jsx
+@@ -2,51 +2,51 @@ import React, { useState, useEffect } from "react";
+ import { Link } from "react-router-dom";
+ import { createPageUrl } from "@/utils";
+ import { base44 } from "@/api/base44Client";
+ import { useQuery } from "@tanstack/react-query";
+ import { Button } from "@/components/ui/button";
+ import { Card } from "@/components/ui/card";
+ import { Badge } from "@/components/ui/badge";
+ import { Sparkles, MapPin, Tag, Loader2, RefreshCw, ArrowRight } from "lucide-react";
+ import ProductCard from "@/components/ui/ProductCard";
+ import DailyDigestPanel from "@/components/buyer/DailyDigestPanel";
+ 
+ export default function Recommendations() {
+   const [user, setUser] = useState(null);
+   const [loading, setLoading] = useState(true);
+   const [savedProducts, setSavedProducts] = useState([]);
+   const [aiRecommendations, setAiRecommendations] = useState(null);
+   const [loadingAI, setLoadingAI] = useState(false);
+ 
+   useEffect(() => {
+     loadUser();
+   }, []);
+ 
+   const loadUser = async () => {
+     const authenticated = await base44.auth.isAuthenticated();
+     if (!authenticated) {
+-      base44.auth.redirectToLogin();
++      window.location.assign(`/login?from=${encodeURIComponent(window.location.href)}`);
+       return;
+     }
+ 
+     const currentUser = await base44.auth.me();
+     setUser(currentUser);
+     setSavedProducts(currentUser.saved_products || []);
+     setLoading(false);
+   };
+ 
+   const { data: products = [], isLoading: loadingProducts } = useQuery({
+     queryKey: ['allProducts'],
+     queryFn: () => base44.entities.Product.filter({ is_available: true }),
+   });
+ 
+   const { data: stores = [] } = useQuery({
+     queryKey: ['allStores'],
+     queryFn: () => base44.entities.Store.filter({ is_active: true }),
+   });
+ 
+   const storeMap = stores.reduce((acc, store) => {
+     acc[store.id] = store;
+     return acc;
+   }, {});
+ 
+   const getRecommendedProducts = () => {

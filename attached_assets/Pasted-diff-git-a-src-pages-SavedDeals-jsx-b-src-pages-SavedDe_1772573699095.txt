@@ -1,0 +1,57 @@
+diff --git a/src/pages/SavedDeals.jsx b/src/pages/SavedDeals.jsx
+index 27d947b94490dceb9361d287c7854fc3f862c5d3..0e43c9e3688d96b96e3fca945735dc9938a8c3b2 100644
+--- a/src/pages/SavedDeals.jsx
++++ b/src/pages/SavedDeals.jsx
+@@ -1,51 +1,51 @@
+ import React, { useState, useEffect } from "react";
+ import { Link } from "react-router-dom";
+ import { createPageUrl } from "@/utils";
+ import { base44 } from "@/api/base44Client";
+ import { useQuery } from "@tanstack/react-query";
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+ import { Button } from "@/components/ui/button";
+ import { Card } from "@/components/ui/card";
+ import { Heart, Store, Tag, Loader2 } from "lucide-react";
+ import ProductCard from "@/components/ui/ProductCard";
+ import StoreCard from "@/components/ui/StoreCard";
+ 
+ export default function SavedDeals() {
+   const [user, setUser] = useState(null);
+   const [loading, setLoading] = useState(true);
+   const [savedProducts, setSavedProducts] = useState([]);
+   const [savedStores, setSavedStores] = useState([]);
+ 
+   useEffect(() => {
+     loadUser();
+   }, []);
+ 
+   const loadUser = async () => {
+     const authenticated = await base44.auth.isAuthenticated();
+     if (!authenticated) {
+-      base44.auth.redirectToLogin();
++      window.location.assign(`/login?from=${encodeURIComponent(window.location.href)}`);
+       return;
+     }
+ 
+     const currentUser = await base44.auth.me();
+     setUser(currentUser);
+     setSavedProducts(currentUser.saved_products || []);
+     setSavedStores(currentUser.saved_stores || []);
+     setLoading(false);
+   };
+ 
+   const { data: products = [], isLoading: loadingProducts } = useQuery({
+     queryKey: ['savedProducts', savedProducts],
+     queryFn: async () => {
+       if (savedProducts.length === 0) return [];
+       const allProducts = await base44.entities.Product.filter({});
+       return allProducts.filter(p => savedProducts.includes(p.id));
+     },
+     enabled: savedProducts.length > 0,
+   });
+ 
+   const { data: stores = [], isLoading: loadingStores } = useQuery({
+     queryKey: ['savedStores', savedStores],
+     queryFn: async () => {
+       if (savedStores.length === 0) return [];
+       const allStores = await base44.entities.Store.filter({});

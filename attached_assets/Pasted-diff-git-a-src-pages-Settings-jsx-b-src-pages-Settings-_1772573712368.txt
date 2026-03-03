@@ -1,0 +1,57 @@
+diff --git a/src/pages/Settings.jsx b/src/pages/Settings.jsx
+index b4d712f0dd75f9b27ed63ea0124065e2bcf845a9..338e7d4ec8163fcd64002707f7c62c8e23f1306a 100644
+--- a/src/pages/Settings.jsx
++++ b/src/pages/Settings.jsx
+@@ -31,51 +31,51 @@ import PaymentNotification from "@/components/payments/PaymentNotification";
+ 
+ export default function Settings() {
+   const [user, setUser] = useState(null);
+   const [loading, setLoading] = useState(true);
+   const [saving, setSaving] = useState(false);
+   const [saved, setSaved] = useState(false);
+ 
+   const [preferences, setPreferences] = useState({
+     preferred_categories: [],
+     preferred_location: "",
+     max_distance_miles: 25,
+     email_alerts: true,
+   });
+ 
+   const [becomeSellerMode, setBecomeSellerMode] = useState(false);
+ 
+   const categories = CORE_CATEGORIES;
+ 
+   useEffect(() => {
+     loadUser();
+   }, []);
+ 
+   const loadUser = async () => {
+     const authenticated = await base44.auth.isAuthenticated();
+     if (!authenticated) {
+-      base44.auth.redirectToLogin();
++      window.location.assign(`/login?from=${encodeURIComponent(window.location.href)}`);
+       return;
+     }
+ 
+     const currentUser = await base44.auth.me();
+     setUser(currentUser);
+     setPreferences({
+       preferred_categories: currentUser.preferred_categories || [],
+       preferred_location: currentUser.preferred_location || "",
+       max_distance_miles: currentUser.max_distance_miles || 25,
+       email_alerts: currentUser.email_alerts !== false,
+     });
+     setLoading(false);
+   };
+ 
+   const handleSavePreferences = async () => {
+     const normalized = {
+       ...preferences,
+       preferred_categories: (preferences.preferred_categories || []).map(normalizeCategory),
+       preferred_location: preferences.preferred_location?.trim() || "",
+     };
+ 
+     if (normalized.preferred_location) {
+       const maybeState = normalized.preferred_location.toUpperCase();
+       if (maybeState.length === 2 && !isTargetState(maybeState)) {
+         alert("Location state must be NY, NJ, CT, or PA.");
