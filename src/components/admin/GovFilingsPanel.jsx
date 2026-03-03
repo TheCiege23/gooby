@@ -200,6 +200,14 @@ Return all found entities as JSON.`,
         </div>
       </Card>
 
+      <Button
+        onClick={handleScanWebSources}
+        disabled={scanningWeb || processing}
+        className="bg-indigo-600 hover:bg-indigo-700 gap-2"
+      >
+        {scanningWeb ? <><Loader2 className="w-4 h-4 animate-spin" /> Scanning websites...</> : <><Search className="w-4 h-4" /> NEW: Scan federal + Google sources</>}
+      </Button>
+
       {/* Accepted sources reference */}
       <Card className="p-5">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Accepted Source Portals (download manually from these)</p>
