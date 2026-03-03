@@ -156,10 +156,17 @@ export default function MyStore() {
   };
 
   const handleSave = async () => {
+    if (!isTargetState(storeData.state)) {
+      alert("GOOBY currently supports NY, NJ, CT, and PA only.");
+      return;
+    }
+
     setSaving(true);
 
     const dataToSave = {
       ...storeData,
+      state: storeData.state.toUpperCase(),
+      category: normalizeCategory(storeData.category),
       owner_id: user.id,
       is_active: true,
     };
