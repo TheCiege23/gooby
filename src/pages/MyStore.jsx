@@ -138,17 +138,7 @@ export default function MyStore() {
     enabled: !!existingStore?.id,
   });
 
-  const categories = [
-    { label: "Clothing", value: "clothing" },
-    { label: "Electronics", value: "electronics" },
-    { label: "Furniture", value: "furniture" },
-    { label: "Home Goods", value: "home_goods" },
-    { label: "Sports", value: "sports" },
-    { label: "Books", value: "books" },
-    { label: "Jewelry", value: "jewelry" },
-    { label: "Toys", value: "toys" },
-    { label: "Other", value: "other" },
-  ];
+  const categories = EXTENDED_CATEGORIES;
 
   const handleUploadImage = async (file, type) => {
     if (type === "logo") setUploadingLogo(true);
