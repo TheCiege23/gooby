@@ -117,8 +117,9 @@ app.post("/api/scanner/run", requireOrigin, async (req, res) => {
     if (status.isRunning) {
       return res.json({ status: "already_running", message: "A scan is already in progress" });
     }
-    res.json({ status: "started", message: "Closure scan started in background" });
-    runClosureScan().then(result => {
+    const mode = req.body?.mode || "full";
+    res.json({ status: "started", message: `${mode} closure scan started in background` });
+    runClosureScan({ mode }).then(result => {
       console.log(`[Scanner] Background scan complete: ${result.total_found} closures`);
     }).catch(err => {
       console.error("[Scanner] Background scan failed:", err.message);
@@ -137,21 +138,21 @@ app.get("/api/scanner/results", requireOrigin, async (req, res) => {
   res.json({ closures: getLastResults() });
 });
 
-cron.schedule("0 7 * * 2,5", () => {
-  console.log("[Cron] Running scheduled closure scan (Tue/Fri 7am)...");
-  runClosureScan().then(result => {
-    console.log(`[Cron] Scheduled scan complete: ${result.total_found} closures found`);
+cron.schedule("0 12 * * *", () => {
+  console.log("[Cron] Running daily full closure scan (7am EST / 12:00 UTC)...");
+  runClosureScan({ mode: "full" }).then(result => {
+    console.log(`[Cron] Full scan complete: ${result.total_found} closures found`);
   }).catch(err => {
-    console.error("[Cron] Scheduled scan failed:", err.message);
+    console.error("[Cron] Full scan failed:", err.message);
   });
 });
 
-cron.schedule("0 12 * * 1,3", () => {
-  console.log("[Cron] Running midday X/news scan (Mon/Wed 12pm)...");
-  runClosureScan().then(result => {
-    console.log(`[Cron] Midday scan complete: ${result.total_found} closures found`);
+cron.schedule("0 17 * * *", () => {
+  console.log("[Cron] Running daily partial midday scan (12pm EST / 17:00 UTC)...");
+  runClosureScan({ mode: "partial" }).then(result => {
+    console.log(`[Cron] Partial scan complete: ${result.total_found} closures found`);
   }).catch(err => {
-    console.error("[Cron] Midday scan failed:", err.message);
+    console.error("[Cron] Partial scan failed:", err.message);
   });
 });
 

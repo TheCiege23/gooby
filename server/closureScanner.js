@@ -116,7 +116,7 @@ async function extractClosuresFromText(rawText) {
   }
 }
 
-export async function runClosureScan() {
+export async function runClosureScan({ mode = "full" } = {}) {
   if (scanResults.isRunning) {
     return { status: "already_running", message: "A scan is already in progress" };
   }
@@ -127,7 +127,8 @@ export async function runClosureScan() {
   const seenKeys = new Set();
   const sources = { news: 0, x: 0, web: 0 };
 
-  console.log("[ClosureScanner] Starting automated scan...");
+  const isPartial = mode === "partial";
+  console.log(`[ClosureScanner] Starting ${isPartial ? "partial" : "full"} scan...`);
 
   try {
     const newsArticles = await searchNewsForClosures();
@@ -148,7 +149,8 @@ export async function runClosureScan() {
       console.log(`[ClosureScanner] NewsAPI: found ${newsClosures.length} closures from ${newsArticles.length} articles`);
     }
 
-    for (const query of X_SEARCH_QUERIES) {
+    const xQueries = isPartial ? X_SEARCH_QUERIES.slice(0, 2) : X_SEARCH_QUERIES;
+    for (const query of xQueries) {
       const xResult = await searchXPosts(query);
       if (xResult && !xResult.includes("No relevant posts found")) {
         const xClosures = await extractClosuresFromText(xResult);
@@ -164,7 +166,8 @@ export async function runClosureScan() {
     }
     console.log(`[ClosureScanner] X/Twitter: found ${sources.x} unique closures`);
 
-    for (const query of SEARCH_QUERIES.slice(0, 5)) {
+    const webQueries = isPartial ? SEARCH_QUERIES.slice(0, 2) : SEARCH_QUERIES.slice(0, 5);
+    for (const query of webQueries) {
       try {
         const webPrompt = `Search the web for: "${query}"
 Find specific retail stores that are closing, going out of business, or having liquidation sales.
