@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Landmark, Upload, CheckCircle, AlertCircle, Loader2, Info, FileText, X, ExternalLink
+  Landmark, Upload, CheckCircle, AlertCircle, Loader2, Info, FileText, X, ExternalLink, Search
 } from "lucide-react";
 
 const TARGET_STATES = ["NY", "NJ", "CT", "PA"];
