@@ -32,7 +32,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
 import AIMatchPanel from "@/components/buyer/AIMatchPanel";
 import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
-import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory, isTargetState } from "@/components/marketConfig";
+import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory } from "@/components/marketConfig";
 
 export default function Browse() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -78,22 +78,24 @@ export default function Browse() {
 
   const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ['products'],
-    queryFn: () => base44.entities.Product.filter({ is_available: true }),
+    queryFn: async () => {
+      const rows = await base44.entities.Product.list('-created_date', 1000);
+      return rows.filter((p) => p.is_available !== false);
+    },
   });
 
   const { data: stores = [], isLoading: loadingStores } = useQuery({
     queryKey: ['stores'],
     queryFn: async () => {
-      const rows = await base44.entities.Store.filter({ is_active: true });
-      return rows.filter((store) => isTargetState(store.state));
+      const rows = await base44.entities.Store.list('-created_date', 1000);
+      return rows.filter((store) => store.is_active !== false);
     },
   });
 
   const { data: aiClosures = [] } = useQuery({
     queryKey: ['ai-closures'],
     queryFn: async () => {
-      const rows = await base44.entities.ImportedStore.filter({ status: "approved" }, "-created_date", 100);
-      return rows.filter((row) => isTargetState(row.state));
+      return base44.entities.ImportedStore.filter({ status: "approved" }, "-created_date", 300);
     },
   });
 
@@ -115,47 +117,37 @@ export default function Browse() {
   }, {});
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = !searchQuery || 
+    const store = storeMap[product.store_id];
+    const matchesSearch = !searchQuery ||
       product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+      product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      store?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchesCategory = selectedCategory === "all" || normalizeCategory(product.category) === selectedCategory;
-    
-    const matchesPrice = product.sale_price >= priceRange[0] && product.sale_price <= priceRange[1];
-    
-    const discount = product.discount_percent || 
+    const matchesPrice = Number(product.sale_price || 0) >= priceRange[0] && Number(product.sale_price || 0) <= priceRange[1];
+    const discount = product.discount_percent ||
       (product.original_price ? Math.round(((product.original_price - product.sale_price) / product.original_price) * 100) : 0);
     const matchesDiscount = discount >= minDiscount;
 
-    // Location filter — match against store city/state/zip
-    const store = storeMap[product.store_id];
     const loc = locationFilter.toLowerCase();
-    const matchesLocation = !locationFilter || 
+    const matchesLocation = !locationFilter ||
       store?.city?.toLowerCase().includes(loc) ||
       store?.state?.toLowerCase().includes(loc) ||
-      store?.zip_code?.includes(loc);
+      String(store?.zip_code || "").includes(loc);
 
-    // State filter
     const matchesState = selectedState === "all" || store?.state === selectedState;
-    const matchesTargetState = isTargetState(store?.state);
 
-    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState && matchesTargetState;
-  }).map(p => ({
+    return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState;
+  }).map((p) => ({
     ...p,
     distance: calculateDistance(storeMap[p.store_id]?.latitude, storeMap[p.store_id]?.longitude)
   })).sort((a, b) => {
-    switch (sortBy) {
-      case 'proximity':
-        return a.distance - b.distance;
-      case 'price_low':
-        return a.sale_price - b.sale_price;
-      case 'price_high':
-        return b.sale_price - a.sale_price;
-      case 'discount':
-        return (b.discount_percent || 0) - (a.discount_percent || 0);
-      default:
-        return new Date(b.created_date) - new Date(a.created_date);
-    }
+    if (sortBy === 'proximity') return a.distance - b.distance;
+    if (sortBy === 'newest') return new Date(b.created_date || 0) - new Date(a.created_date || 0);
+    if (sortBy === 'price_low') return Number(a.sale_price || 0) - Number(b.sale_price || 0);
+    if (sortBy === 'price_high') return Number(b.sale_price || 0) - Number(a.sale_price || 0);
+    if (sortBy === 'discount') return Number(b.discount_percent || 0) - Number(a.discount_percent || 0);
+    return 0;
   });
 
   const filteredStores = stores.filter(store => {
@@ -172,14 +164,16 @@ export default function Browse() {
       store.zip_code?.includes(loc);
 
     const matchesState = selectedState === "all" || store.state === selectedState;
-    const matchesTargetState = isTargetState(store.state);
-
-    return matchesSearch && matchesCategory && matchesLocation && matchesState && matchesTargetState;
+    return matchesSearch && matchesCategory && matchesLocation && matchesState;
   }).map(s => ({
     ...s,
     distance: calculateDistance(s.latitude, s.longitude)
   })).sort((a, b) => {
     if (sortBy === 'proximity') return a.distance - b.distance;
+    if (sortBy === 'newest') return new Date(b.created_date || 0) - new Date(a.created_date || 0);
+    if (sortBy === 'price_low') return Number(a.sale_price || 0) - Number(b.sale_price || 0);
+    if (sortBy === 'price_high') return Number(b.sale_price || 0) - Number(a.sale_price || 0);
+    if (sortBy === 'discount') return Number(b.discount_percent || 0) - Number(a.discount_percent || 0);
     return 0;
   });
 
