@@ -92,7 +92,11 @@ export default function Settings() {
 
   const handleBecomeSeller = async () => {
     setSaving(true);
-    await base44.auth.updateMe({ role: "seller" });
+    await base44.auth.updateMe({
+      role: "seller",
+      seller_regions: TARGET_STATES,
+      seller_focus_categories: ["clothing", "electronics", "shoes", "food", "accessories"],
+    });
     await loadUser();
     setSaving(false);
     setBecomeSellerMode(false);
