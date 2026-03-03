@@ -14,6 +14,7 @@ A marketplace platform for discovering and purchasing inventory from closing ret
 - **SMS:** Twilio
 - **Email:** Resend
 - **News:** NewsAPI
+- **Scheduling:** node-cron (automated scans)
 - **Maps:** React Leaflet
 - **Payments:** Stripe
 - **Animations:** Framer Motion
@@ -24,6 +25,7 @@ A marketplace platform for discovering and purchasing inventory from closing ret
 ├── server/              # Express.js backend server
 │   ├── index.js         # Main server entry, API routes
 │   ├── xai.js           # xAI/Grok integration (chat, vision)
+│   ├── closureScanner.js # Automated store closure discovery (news, X, web)
 │   ├── twilio.js        # Twilio SMS integration
 │   ├── resend.js        # Resend email integration
 │   └── newsapi.js       # NewsAPI integration
@@ -59,6 +61,9 @@ A marketplace platform for discovering and purchasing inventory from closing ret
 - `POST /api/resend/email` - Send email (body: `{from?, to, subject, html?, text?}`)
 - `GET /api/news/search?q=...` - Search news articles
 - `GET /api/news/headlines` - Get top headlines
+- `POST /api/scanner/run` - Trigger a manual closure scan
+- `GET /api/scanner/status` - Get scanner status and history
+- `GET /api/scanner/results` - Get last scan results
 
 ## Required Secrets
 
@@ -84,3 +89,6 @@ A marketplace platform for discovering and purchasing inventory from closing ret
 - 404 errors from the SDK in development are expected when not connected to a Base44 app context
 - Twilio initialization is lazy - it only validates credentials when an SMS is actually sent
 - Frontend uses `src/api/services.js` to call backend API endpoints
+- Automated closure scanning runs on a schedule: Tue/Fri at 7am and Mon/Wed at 12pm
+- Scanner searches NewsAPI, X (Twitter) via Grok, and general web for store closures in NY/NJ/CT/PA
+- Discovered closures are returned via API (not auto-saved to DB — admin review step)

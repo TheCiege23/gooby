@@ -1,9 +1,11 @@
 import express from "express";
 import cors from "cors";
+import cron from "node-cron";
 import { chat, analyzeImage } from "./xai.js";
 import { sendSMS } from "./twilio.js";
 import { sendEmail } from "./resend.js";
 import { searchNews, getTopHeadlines } from "./newsapi.js";
+import { runClosureScan, getScanStatus, getLastResults } from "./closureScanner.js";
 
 const app = express();
 
@@ -32,7 +34,8 @@ function requireOrigin(req, res, next) {
 }
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", services: ["xai", "twilio", "resend", "newsapi"] });
+  const scanStatus = getScanStatus();
+  res.json({ status: "ok", services: ["xai", "twilio", "resend", "newsapi", "closureScanner"], scanner: scanStatus });
 });
 
 app.post("/api/xai/chat", requireOrigin, async (req, res) => {
@@ -106,6 +109,50 @@ app.get("/api/news/headlines", requireOrigin, async (req, res) => {
     console.error("NewsAPI headlines error:", err.message);
     res.status(500).json({ error: err.message });
   }
+});
+
+app.post("/api/scanner/run", requireOrigin, async (req, res) => {
+  try {
+    const status = getScanStatus();
+    if (status.isRunning) {
+      return res.json({ status: "already_running", message: "A scan is already in progress" });
+    }
+    res.json({ status: "started", message: "Closure scan started in background" });
+    runClosureScan().then(result => {
+      console.log(`[Scanner] Background scan complete: ${result.total_found} closures`);
+    }).catch(err => {
+      console.error("[Scanner] Background scan failed:", err.message);
+    });
+  } catch (err) {
+    console.error("Scanner trigger error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/scanner/status", requireOrigin, async (req, res) => {
+  res.json(getScanStatus());
+});
+
+app.get("/api/scanner/results", requireOrigin, async (req, res) => {
+  res.json({ closures: getLastResults() });
+});
+
+cron.schedule("0 7 * * 2,5", () => {
+  console.log("[Cron] Running scheduled closure scan (Tue/Fri 7am)...");
+  runClosureScan().then(result => {
+    console.log(`[Cron] Scheduled scan complete: ${result.total_found} closures found`);
+  }).catch(err => {
+    console.error("[Cron] Scheduled scan failed:", err.message);
+  });
+});
+
+cron.schedule("0 12 * * 1,3", () => {
+  console.log("[Cron] Running midday X/news scan (Mon/Wed 12pm)...");
+  runClosureScan().then(result => {
+    console.log(`[Cron] Midday scan complete: ${result.total_found} closures found`);
+  }).catch(err => {
+    console.error("[Cron] Midday scan failed:", err.message);
+  });
 });
 
 if (process.env.NODE_ENV === "production") {

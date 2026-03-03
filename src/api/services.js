@@ -46,6 +46,29 @@ export const resendService = {
   },
 };
 
+export const scannerService = {
+  async triggerScan() {
+    const res = await fetch(`${API_BASE}/scanner/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+
+  async getStatus() {
+    const res = await fetch(`${API_BASE}/scanner/status`);
+    if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+
+  async getResults() {
+    const res = await fetch(`${API_BASE}/scanner/results`);
+    if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+};
+
 export const newsService = {
   async search(query, options = {}) {
     const params = new URLSearchParams({ q: query, ...options });
