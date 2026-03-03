@@ -4,16 +4,17 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import GoobyWordmark from "@/components/brand/GoobyWordmark";
 
 export default function Landing() {
   const [zipCode, setZipCode] = useState("");
   const navigate = useNavigate();
 
+  const sanitizedZip = zipCode.replace(/\D/g, "").slice(0, 5);
+
   const handleGuestSearch = (e) => {
     e.preventDefault();
-    const zip = zipCode.replace(/\D/g, "").slice(0, 5);
-    navigate(createPageUrl(`Browse?location=${zip}`));
+    if (sanitizedZip.length !== 5) return;
+    navigate(createPageUrl(`Browse?location=${sanitizedZip}`));
   };
 
   return (
@@ -34,11 +35,17 @@ export default function Landing() {
         <form onSubmit={handleGuestSearch} className="max-w-lg mx-auto space-y-3 mb-6">
           <Input
             value={zipCode}
-            onChange={(e) => setZipCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
-            placeholder="Enter zip code (e.g. 10001)"
+            onChange={(e) => setZipCode(e.target.value)}
+            placeholder="Enter 5-digit zip code (e.g. 10001)"
             className="h-12 text-center"
+            inputMode="numeric"
+            maxLength={5}
           />
-          <Button type="submit" className="w-full h-12 bg-blue-600 hover:bg-blue-700">
+          <Button
+            type="submit"
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700"
+            disabled={sanitizedZip.length !== 5}
+          >
             Explore Deals Near My Zip
           </Button>
         </form>

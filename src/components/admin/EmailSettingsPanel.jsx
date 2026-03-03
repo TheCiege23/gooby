@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Bell, Send, Users, CheckCircle, Trash2, RefreshCw } from "lucide-react";
+import { Mail, Send, Users, CheckCircle, Trash2, RefreshCw } from "lucide-react";
 
 function ResultBadge({ data }) {
   if (!data) return null;
