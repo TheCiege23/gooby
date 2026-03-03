@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,6 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
@@ -153,7 +152,7 @@ export default function Layout({ children, currentPageName }) {
                 </>
               ) : (
                 <Button 
-                  onClick={() => base44.auth.redirectToLogin()}
+                  onClick={() => window.location.assign(`/login?from=${encodeURIComponent(window.location.href)}`)}
                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
                 >
                   Sign In / Sign Up
