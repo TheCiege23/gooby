@@ -85,12 +85,11 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to={isAuthenticated ? createPageUrl("Home") : "/"} className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                <span className="text-white font-black text-lg">G</span>
-              </div>
-              <span className="text-2xl font-black bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-                GOOBY
-              </span>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69a300f6b5fff3cc73e48948/a9dedf11b_5aa6bc17-16f3-467f-9da7-97372c9198cc.jpg"
+                alt="GOOBY"
+                className="h-10 w-auto"
+              />
             </Link>
 
             {/* Desktop Navigation */}
