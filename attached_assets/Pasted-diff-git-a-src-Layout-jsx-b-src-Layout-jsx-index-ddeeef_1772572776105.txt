@@ -1,0 +1,117 @@
+diff --git a/src/Layout.jsx b/src/Layout.jsx
+index ddeeeff5ff54524d88d887bc81eb4c54f91d4004..c053598ccaa976e8c2d882a7c1d4a44f8117504f 100644
+--- a/src/Layout.jsx
++++ b/src/Layout.jsx
+@@ -1,58 +1,57 @@
+ import React, { useState, useEffect } from "react";
+-import { Link, useNavigate } from "react-router-dom";
++import { Link } from "react-router-dom";
+ import { createPageUrl } from "@/utils";
+ import { base44 } from "@/api/base44Client";
+ import { Button } from "@/components/ui/button";
+ import { 
+   MapPin, 
+   Search, 
+   Store, 
+   Heart, 
+   Bell, 
+   User, 
+   Menu,
+   LogOut,
+   Settings,
+   Package,
+   Home
+ } from "lucide-react";
+ import AIChatBubble from "@/components/buyer/AIChatBubble";
+ import {
+   DropdownMenu,
+   DropdownMenuContent,
+   DropdownMenuItem,
+   DropdownMenuSeparator,
+   DropdownMenuTrigger,
+ } from "@/components/ui/dropdown-menu";
+ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+ 
+ export default function Layout({ children, currentPageName }) {
+   const [user, setUser] = useState(null);
+   const [isAuthenticated, setIsAuthenticated] = useState(false);
+   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+-  const navigate = useNavigate();
+ 
+   useEffect(() => {
+     checkAuth();
+   }, []);
+ 
+   const checkAuth = async () => {
+     const authenticated = await base44.auth.isAuthenticated();
+     setIsAuthenticated(authenticated);
+     if (authenticated) {
+       const currentUser = await base44.auth.me();
+       setUser(currentUser);
+     }
+   };
+ 
+   const handleLogout = async () => {
+     await base44.auth.logout("/");
+   };
+ 
+   const navItems = [
+     { name: "Home", page: "Home", icon: Home },
+     { name: "Browse Deals", page: "Browse", icon: Search },
+     { name: "Map View", page: "MapView", icon: MapPin },
+   ];
+ 
+   const userNavItems = user?.role === "admin" ? [
+@@ -131,51 +130,51 @@ export default function Layout({ children, currentPageName }) {
+                       </Button>
+                     </DropdownMenuTrigger>
+                     <DropdownMenuContent align="end" className="w-56">
+                       <div className="px-3 py-2">
+                         <p className="text-sm font-medium">{user?.full_name || "User"}</p>
+                         <p className="text-xs text-gray-500">{user?.email}</p>
+                         <p className="text-xs text-blue-600 capitalize mt-1">{user?.role || "buyer"}</p>
+                       </div>
+                       <DropdownMenuSeparator />
+                       <DropdownMenuItem asChild>
+                         <Link to={createPageUrl("Settings")} className="cursor-pointer">
+                           <Settings className="w-4 h-4 mr-2" />
+                           Settings
+                         </Link>
+                       </DropdownMenuItem>
+                       <DropdownMenuSeparator />
+                       <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                         <LogOut className="w-4 h-4 mr-2" />
+                         Sign Out
+                       </DropdownMenuItem>
+                     </DropdownMenuContent>
+                   </DropdownMenu>
+                 </>
+               ) : (
+                 <Button 
+-                  onClick={() => base44.auth.redirectToLogin()}
++                  onClick={() => window.location.assign(`/login?from=${encodeURIComponent(window.location.href)}`)}
+                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+                 >
+                   Sign In / Sign Up
+                 </Button>
+               )}
+ 
+               {/* Mobile Menu */}
+               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                 <SheetTrigger asChild className="md:hidden">
+                   <Button variant="ghost" size="icon">
+                     <Menu className="w-6 h-6" />
+                   </Button>
+                 </SheetTrigger>
+                 <SheetContent side="right" className="w-80">
+                   <div className="flex flex-col gap-4 mt-8">
+                     {navItems.map((item) => (
+                       <Link
+                         key={item.page}
+                         to={createPageUrl(item.page)}
+                         onClick={() => setMobileMenuOpen(false)}
+                         className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                           currentPageName === item.page
+                             ? "bg-blue-50 text-blue-600"
+                             : "text-gray-600 hover:bg-gray-50"
+                         }`}
