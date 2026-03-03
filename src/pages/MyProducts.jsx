@@ -40,7 +40,6 @@ import {
   Loader2, 
   Upload,
   Package,
-  Image,
   X,
   Store,
   ArrowLeft
