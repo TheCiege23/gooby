@@ -225,6 +225,7 @@ export default function StoreProfile() {
 
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
+                <StoreMessageButton store={store} />
                 {store.latitude && store.longitude && (
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`}
