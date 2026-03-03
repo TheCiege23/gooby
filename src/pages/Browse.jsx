@@ -40,8 +40,8 @@ export default function Browse() {
   const initialCategory = urlParams.get('category') || '';
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [selectedState, setSelectedState] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory || "all");
+  const [selectedState, setSelectedState] = useState("all");
   const [locationFilter, setLocationFilter] = useState(urlParams.get('location') || '');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [minDiscount, setMinDiscount] = useState(0);
@@ -188,14 +188,23 @@ export default function Browse() {
 
   const clearFilters = () => {
     setSearchQuery('');
-    setSelectedCategory('');
-    setSelectedState('');
+    setSelectedCategory('all');
+    setSelectedState('all');
     setLocationFilter('');
     setPriceRange([0, 1000]);
     setMinDiscount(0);
   };
 
-  const hasActiveFilters = searchQuery || selectedCategory || selectedState || locationFilter || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
+  const hasActiveFilters = searchQuery || selectedCategory !== "all" || selectedState !== "all" || locationFilter || priceRange[0] > 0 || priceRange[1] < 1000 || minDiscount > 0;
+
+  const filteredAiClosures = aiClosures.filter((c) => {
+    const loc = locationFilter.toLowerCase();
+    const matchesLocation = !locationFilter || c.city?.toLowerCase().includes(loc) || c.state?.toLowerCase().includes(loc) || String(c.zip_code || "").includes(loc);
+    const matchesState = selectedState === "all" || c.state === selectedState;
+    const matchesCategory = selectedCategory === "all" || normalizeCategory(c.category) === selectedCategory;
+    const matchesSearch = !searchQuery || c.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesLocation && matchesState && matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -245,7 +254,7 @@ export default function Browse() {
           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
             type="text"
-            placeholder="City or zip..."
+            placeholder="City, state, or zip..."
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
             className="pl-10 h-12 rounded-xl border-gray-200"
@@ -283,11 +292,10 @@ export default function Browse() {
             <SelectValue placeholder="State" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={null}>All States</SelectItem>
-            <SelectItem value="NY">New York</SelectItem>
-            <SelectItem value="NJ">New Jersey</SelectItem>
-            <SelectItem value="CT">Connecticut</SelectItem>
-            <SelectItem value="PA">Pennsylvania</SelectItem>
+            <SelectItem value="all">All States</SelectItem>
+            {TARGET_STATES.map((stateCode) => (
+              <SelectItem key={stateCode} value={stateCode}>{stateCode}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -364,16 +372,16 @@ export default function Browse() {
 
         {hasActiveFilters && (
         <div className="flex items-center gap-2 flex-wrap">
-          {selectedCategory && (
+          {selectedCategory !== "all" && (
             <Badge variant="secondary" className="rounded-full pl-3">
               {categories.find(c => c.value === selectedCategory)?.label}
-              <button onClick={() => setSelectedCategory('')} className="ml-2"><X className="w-3 h-3" /></button>
+              <button onClick={() => setSelectedCategory('all')} className="ml-2"><X className="w-3 h-3" /></button>
             </Badge>
           )}
-          {selectedState && (
+          {selectedState !== "all" && (
             <Badge variant="secondary" className="rounded-full pl-3">
               {selectedState}
-              <button onClick={() => setSelectedState('')} className="ml-2"><X className="w-3 h-3" /></button>
+              <button onClick={() => setSelectedState('all')} className="ml-2"><X className="w-3 h-3" /></button>
             </Badge>
           )}
           {locationFilter && (
