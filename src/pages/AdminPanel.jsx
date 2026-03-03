@@ -1,303 +1,153 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { createPageUrl } from "@/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { scannerService } from "@/api/services";
-import {
-  Shield,
-  Loader2,
-  RefreshCw,
-  Activity,
-  Clock,
-  MapPin,
-  Store,
-  Users,
-  Package,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Radar,
-  BarChart3,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, Store, Package, Users, AlertTriangle, Clock3, CheckCircle2, ArrowRight } from "lucide-react";
+
+function StatCard({ icon: Icon, label, value, hint, tone = "blue" }) {
+  const tones = {
+    blue: "bg-blue-50 text-blue-700 border-blue-100",
+    green: "bg-green-50 text-green-700 border-green-100",
+    amber: "bg-amber-50 text-amber-700 border-amber-100",
+    red: "bg-red-50 text-red-700 border-red-100",
+    purple: "bg-purple-50 text-purple-700 border-purple-100",
+  };
+
+  return (
+    <Card className={`p-4 border ${tones[tone]}`}>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-medium">{label}</p>
+        <Icon className="w-4 h-4" />
+      </div>
+      <p className="text-2xl font-bold">{value}</p>
+      {hint && <p className="text-xs opacity-80 mt-1">{hint}</p>}
+    </Card>
+  );
+}
 
 export default function AdminPanel() {
-  const [user, setUser] = useState(null);
-  const [scanMode, setScanMode] = useState("full");
-  const [scanTriggered, setScanTriggered] = useState(false);
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u?.role !== "admin") {
-        window.location.href = "/";
-      }
-    });
-  }, []);
+  const { data: me } = useQuery({
+    queryKey: ["admin-me"],
+    queryFn: () => base44.auth.me(),
+  });
 
   const { data: stores = [] } = useQuery({
     queryKey: ["admin-stores"],
-    queryFn: () => base44.entities.Store.list("-created_date", 500),
-    enabled: !!user,
+    queryFn: () => base44.entities.Store.list("-created_date", 1000),
   });
 
   const { data: products = [] } = useQuery({
     queryKey: ["admin-products"],
-    queryFn: () => base44.entities.Product.list("-created_date", 500),
-    enabled: !!user,
+    queryFn: () => base44.entities.Product.list("-created_date", 1500),
   });
 
-  const { data: scannerStatus, refetch: refetchScanner } = useQuery({
-    queryKey: ["scanner-status"],
-    queryFn: () => scannerService.getStatus(),
-    refetchInterval: 10000,
-    enabled: !!user,
+  const { data: importedStores = [] } = useQuery({
+    queryKey: ["admin-imported-stores"],
+    queryFn: () => base44.entities.ImportedStore.list("-created_date", 1000),
   });
 
-  const { data: scanResults } = useQuery({
-    queryKey: ["scanner-results"],
-    queryFn: () => scannerService.getResults(),
-    enabled: !!user,
+  const { data: users = [] } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
+      try {
+        return await base44.entities.User.list("-created_date", 1000);
+      } catch (_) {
+        return [];
+      }
+    },
   });
 
-  const triggerScan = async () => {
-    setScanTriggered(true);
-    try {
-      await scannerService.runScan(scanMode);
-      setTimeout(() => refetchScanner(), 2000);
-    } catch (err) {
-      console.error("Scan trigger failed:", err);
-    }
-    setTimeout(() => setScanTriggered(false), 3000);
-  };
-
-  const activeStores = stores.filter(s => s.is_active);
-  const stateBreakdown = {};
-  activeStores.forEach(s => {
-    const st = s.state || "Unknown";
-    stateBreakdown[st] = (stateBreakdown[st] || 0) + 1;
-  });
-
-  const availableProducts = products.filter(p => p.is_available);
-  const categoryBreakdown = {};
-  availableProducts.forEach(p => {
-    const cat = p.category || "other";
-    categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
-  });
-
-  if (!user) {
+  if (me && me.role !== "admin") {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+        <ShieldCheck className="w-10 h-10 mx-auto text-gray-300 mb-3" />
+        <h1 className="text-2xl font-bold text-gray-900">Admin access only</h1>
+        <p className="text-gray-600 mt-2">You need an admin account to view this panel.</p>
       </div>
     );
   }
 
+  const pendingImports = importedStores.filter((s) => s.status === "pending").length;
+  const approvedImports = importedStores.filter((s) => s.status === "approved").length;
+  const rejectedImports = importedStores.filter((s) => s.status === "rejected").length;
+  const activeStores = stores.filter((s) => s.is_active !== false).length;
+  const availableProducts = products.filter((p) => p.is_available !== false).length;
+  const flaggedProducts = products.filter((p) => p.is_flagged).length;
+  const sellers = users.filter((u) => u.role === "seller").length;
+
+  const recentImports = importedStores.slice(0, 8);
+  const recentProducts = products.slice(0, 8);
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Shield className="w-6 h-6 text-blue-600" />
-            Admin Panel
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">Marketplace overview, scanner control, and platform stats</p>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Control Panel</h1>
+          <p className="text-gray-500 mt-1">Track marketplace health, moderation, imports, and growth in one place.</p>
         </div>
+        <Link to={createPageUrl("AdminImports")}>
+          <Button className="bg-blue-600 hover:bg-blue-700">Open Admin Imports <ArrowRight className="w-4 h-4 ml-2" /></Button>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Store className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{activeStores.length}</p>
-              <p className="text-xs text-gray-500">Active Stores</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Package className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{availableProducts.length}</p>
-              <p className="text-xs text-gray-500">Available Products</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stores.length}</p>
-              <p className="text-xs text-gray-500">Total Stores</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Radar className="w-5 h-5 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{scannerStatus?.lastResultCount || 0}</p>
-              <p className="text-xs text-gray-500">Last Scan Finds</p>
-            </div>
-          </div>
-        </Card>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Store} label="Active Stores" value={activeStores} hint={`${stores.length} total stores`} tone="blue" />
+        <StatCard icon={Package} label="Available Products" value={availableProducts} hint={`${products.length} total products`} tone="green" />
+        <StatCard icon={Clock3} label="Pending Imports" value={pendingImports} hint={`${approvedImports} approved / ${rejectedImports} rejected`} tone="amber" />
+        <StatCard icon={AlertTriangle} label="Flagged Products" value={flaggedProducts} hint="Needs moderation review" tone="red" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Radar className="w-5 h-5 text-blue-600" />
-            Closure Scanner
-          </h2>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${scannerStatus?.isRunning ? "bg-yellow-400 animate-pulse" : "bg-green-500"}`} />
-              <span className="text-sm font-medium">
-                {scannerStatus?.isRunning ? "Scan in progress..." : "Idle"}
-              </span>
-            </div>
-
-            {scannerStatus?.lastRun && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Clock className="w-4 h-4" />
-                Last run: {new Date(scannerStatus.lastRun).toLocaleString()}
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <select
-                value={scanMode}
-                onChange={e => setScanMode(e.target.value)}
-                className="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white"
-              >
-                <option value="full">Full Scan</option>
-                <option value="partial">Partial Scan</option>
-              </select>
-              <Button
-                onClick={triggerScan}
-                disabled={scannerStatus?.isRunning || scanTriggered}
-                className="bg-blue-600 hover:bg-blue-700 gap-2"
-              >
-                {scannerStatus?.isRunning || scanTriggered ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4" />
-                )}
-                {scannerStatus?.isRunning ? "Running..." : scanTriggered ? "Triggered" : "Run Scan"}
-              </Button>
-            </div>
-
-            <div className="text-xs text-gray-400">
-              Schedule: Full scan daily at 7am EST, partial scan daily at 12pm EST
-            </div>
-
-            {scannerStatus?.history?.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Scans</h3>
-                <div className="space-y-1">
-                  {scannerStatus.history.slice(-5).reverse().map((h, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs text-gray-500 py-1 border-b border-gray-50">
-                      <span>{new Date(h.timestamp).toLocaleString()}</span>
-                      <div className="flex items-center gap-2">
-                        <span>{h.total} found</span>
-                        <div className="flex gap-1">
-                          {h.sources?.news > 0 && <Badge variant="outline" className="text-[10px] px-1 py-0">News: {h.sources.news}</Badge>}
-                          {h.sources?.x > 0 && <Badge variant="outline" className="text-[10px] px-1 py-0">X: {h.sources.x}</Badge>}
-                          {h.sources?.facebook > 0 && <Badge variant="outline" className="text-[10px] px-1 py-0">FB: {h.sources.facebook}</Badge>}
-                          {h.sources?.web > 0 && <Badge variant="outline" className="text-[10px] px-1 py-0">Web: {h.sources.web}</Badge>}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-green-600" />
-            Platform Breakdown
-          </h2>
-
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Stores by State</h3>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(stateBreakdown).sort((a, b) => b[1] - a[1]).map(([state, count]) => (
-                  <Badge key={state} variant="outline" className="px-3 py-1">
-                    {state}: {count}
-                  </Badge>
-                ))}
-                {Object.keys(stateBreakdown).length === 0 && (
-                  <span className="text-sm text-gray-400">No active stores yet</span>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Products by Category</h3>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(categoryBreakdown).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([cat, count]) => (
-                  <Badge key={cat} variant="outline" className="px-3 py-1 capitalize">
-                    {cat.replace(/_/g, " ")}: {count}
-                  </Badge>
-                ))}
-                {Object.keys(categoryBreakdown).length === 0 && (
-                  <span className="text-sm text-gray-400">No products yet</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard icon={Users} label="Users" value={users.length} hint={`${sellers} sellers`} tone="purple" />
+        <StatCard icon={CheckCircle2} label="Approved Imports" value={approvedImports} hint="Moved to store pipeline" tone="green" />
+        <StatCard icon={Clock3} label="Import Queue Size" value={importedStores.length} hint="All import statuses" tone="blue" />
       </div>
 
-      {scanResults?.closures?.length > 0 && (
+      <div className="grid lg:grid-cols-2 gap-6">
         <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-orange-600" />
-            Last Scan Results ({scanResults.closures.length} closures found)
-          </h2>
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {scanResults.closures.map((c, i) => (
-              <div key={i} className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">{c.name}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                    <MapPin className="w-3 h-3" />
-                    {c.city}, {c.state}
-                  </p>
-                  {c.closure_signals?.length > 0 && (
-                    <p className="text-xs text-gray-400 mt-0.5">Signals: {c.closure_signals.join(", ")}</p>
-                  )}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Recent Imported Stores</h2>
+            <Link to={createPageUrl("AdminImports")} className="text-sm text-blue-600 hover:underline">Manage</Link>
+          </div>
+          <div className="space-y-3">
+            {recentImports.length === 0 ? (
+              <p className="text-sm text-gray-500">No imported stores yet.</p>
+            ) : recentImports.map((item) => (
+              <div key={item.id} className="p-3 rounded-lg border border-gray-100 bg-gray-50">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium text-sm text-gray-900 truncate">{item.name}</p>
+                  <Badge className="text-xs capitalize">{item.status || "pending"}</Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {c.discovered_via?.replace(/_/g, " ")}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {c.category}
-                  </Badge>
-                </div>
+                <p className="text-xs text-gray-500 mt-1">{item.city}, {item.state} {item.zip_code}</p>
               </div>
             ))}
           </div>
         </Card>
-      )}
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Recent Inventory Added</h2>
+            <Link to={createPageUrl("Browse")} className="text-sm text-blue-600 hover:underline">View in Browse</Link>
+          </div>
+          <div className="space-y-3">
+            {recentProducts.length === 0 ? (
+              <p className="text-sm text-gray-500">No products yet.</p>
+            ) : recentProducts.map((item) => (
+              <div key={item.id} className="p-3 rounded-lg border border-gray-100 bg-gray-50">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium text-sm text-gray-900 truncate">{item.name}</p>
+                  <Badge className="text-xs">${Number(item.sale_price || 0).toFixed(2)}</Badge>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{item.category || "other"} • {item.discount_percent || 0}% off</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
