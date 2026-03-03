@@ -69,8 +69,22 @@ export default function Settings() {
   };
 
   const handleSavePreferences = async () => {
+    const normalized = {
+      ...preferences,
+      preferred_categories: (preferences.preferred_categories || []).map(normalizeCategory),
+      preferred_location: preferences.preferred_location?.trim() || "",
+    };
+
+    if (normalized.preferred_location) {
+      const maybeState = normalized.preferred_location.toUpperCase();
+      if (maybeState.length === 2 && !isTargetState(maybeState)) {
+        alert("Location state must be NY, NJ, CT, or PA.");
+        return;
+      }
+    }
+
     setSaving(true);
-    await base44.auth.updateMe(preferences);
+    await base44.auth.updateMe(normalized);
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
