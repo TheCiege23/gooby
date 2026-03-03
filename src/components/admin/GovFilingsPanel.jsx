@@ -50,6 +50,7 @@ export default function GovFilingsPanel() {
   const [files, setFiles] = useState([]);
   const [sourceLabel, setSourceLabel] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [scanningWeb, setScanningWeb] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
