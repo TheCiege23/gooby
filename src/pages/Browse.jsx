@@ -87,15 +87,8 @@ export default function Browse() {
 
   const categories = [
     { label: "All Categories", value: "" },
-    { label: "Clothing", value: "clothing" },
+    { label: "Clothing & Fashion", value: "clothing" },
     { label: "Electronics", value: "electronics" },
-    { label: "Furniture", value: "furniture" },
-    { label: "Home Goods", value: "home_goods" },
-    { label: "Sports", value: "sports" },
-    { label: "Books", value: "books" },
-    { label: "Jewelry", value: "jewelry" },
-    { label: "Toys", value: "toys" },
-    { label: "Other", value: "other" },
   ];
 
   const calculateDistance = (lat, lng) => {

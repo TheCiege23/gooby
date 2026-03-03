@@ -36,18 +36,11 @@ const SCAN_LOCATIONS = [
 
 const TARGET_STATES = new Set(["NY", "NJ", "CT", "PA"]);
 
-// ─── Priority retail types (in order) ────────────────────────────────────────
+// ─── Priority retail types — clothing (NAICS 4481), shoes (NAICS 4482), electronics (NAICS 443) ──
 const RETAIL_TYPES = [
-  "department_store",
   "clothing_store",
-  "electronics_store",
-  "furniture_store",
-  "home_goods_store",
   "shoe_store",
-  "jewelry_store",
-  "sporting_goods_store",
-  "toy_store",
-  "book_store",
+  "electronics_store",
 ];
 
 function mapCategory(types = []) {

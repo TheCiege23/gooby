@@ -8,12 +8,10 @@ const STATE_BOXES = {
   PA: [39.7198, -80.5199, 42.2699, -74.6895],
 };
 
-// OSM retail shop values to include
+// OSM retail shop values — clothing (NAICS 4481), shoes (NAICS 4482), electronics (NAICS 443) only
 const RETAIL_SHOP_TAGS = [
-  "clothes", "shoes", "fashion", "department_store", "electronics",
-  "furniture", "houseware", "hardware", "sports", "toys", "books",
-  "jewelry", "gift", "mall", "supermarket", "convenience", "variety_store",
-  "general", "wholesale", "second_hand"
+  "clothes", "shoes", "fashion", "boutique", "second_hand",
+  "electronics", "mobile_phone", "computer", "hifi"
 ];
 
 function mapOsmCategory(tags = {}) {
@@ -29,20 +27,19 @@ function mapOsmCategory(tags = {}) {
   return "other";
 }
 
+const SHOP_REGEX = "^(clothes|shoes|fashion|boutique|second_hand|electronics|mobile_phone|computer|hifi)$";
+
 function buildQuery(bbox) {
   const [s, w, n, e] = bbox;
-  const box = `(${s},${w},${n},${e})`;
-  // Query for disused/closed/vacant retail nodes and ways
+  // Only clothing, shoes, and electronics — NAICS 4481, 4482, 443
   return `
 [out:json][timeout:60];
 (
-  node["disused:shop"~"."](${s},${w},${n},${e});
+  node["disused:shop"~"${SHOP_REGEX}"](${s},${w},${n},${e});
+  node["was:shop"~"${SHOP_REGEX}"](${s},${w},${n},${e});
   node["shop"="vacant"](${s},${w},${n},${e});
-  node["shop"="closed"](${s},${w},${n},${e});
-  node["was:shop"~"."](${s},${w},${n},${e});
-  way["disused:shop"~"."](${s},${w},${n},${e});
-  way["shop"="vacant"](${s},${w},${n},${e});
-  way["was:shop"~"."](${s},${w},${n},${e});
+  way["disused:shop"~"${SHOP_REGEX}"](${s},${w},${n},${e});
+  way["was:shop"~"${SHOP_REGEX}"](${s},${w},${n},${e});
 );
 out center tags;
 `;

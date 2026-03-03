@@ -71,11 +71,8 @@ export default function MapView() {
 
   const categories = [
     { label: "All Categories", value: "" },
-    { label: "Clothing", value: "clothing" },
+    { label: "Clothing & Fashion", value: "clothing" },
     { label: "Electronics", value: "electronics" },
-    { label: "Furniture", value: "furniture" },
-    { label: "Home Goods", value: "home_goods" },
-    { label: "Sports", value: "sports" },
   ];
 
   const STATE_COLORS = {
