@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import { MapPin, AlertCircle, ArrowRight } from "lucide-react";
 
 const STATE_COLORS = {
   NY: "bg-blue-100 text-blue-800",
