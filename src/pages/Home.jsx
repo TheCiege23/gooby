@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -26,6 +27,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadUser();
@@ -77,6 +79,16 @@ export default function Home() {
     window.location.href = createPageUrl(`Browse?search=${searchQuery}`);
   };
 
+  const handleBecomeSeller = async () => {
+    const authenticated = await base44.auth.isAuthenticated();
+    if (!authenticated) {
+      window.location.assign(`/signup?from=${encodeURIComponent(window.location.origin + createPageUrl("MyStore"))}`);
+      return;
+    }
+
+    navigate(createPageUrl("MyStore"));
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -87,6 +99,9 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-32">
           <div className="max-w-3xl">
             <div className="mb-4"><GoobyWordmark large /></div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-sm font-semibold mb-3">
+              <Sparkles className="w-4 h-4" /> Built with GOOBY AI: smart deal matching + closure discovery
+            </div>
             <Badge className="bg-white/20 text-white hover:bg-white/30 mb-6">
               <Sparkles className="w-3 h-3 mr-1" />
               Save up to 90% on amazing deals
@@ -281,12 +296,10 @@ export default function Home() {
                 List your inventory on GOOBY and reach thousands of deal-hunters looking for your products.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link to={createPageUrl("Settings")}>
-                  <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 rounded-full px-8">
-                    <Store className="w-5 h-5 mr-2" />
-                    Become a Seller
-                  </Button>
-                </Link>
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 rounded-full px-8" onClick={handleBecomeSeller}>
+                  <Store className="w-5 h-5 mr-2" />
+                  Become a Seller
+                </Button>
                 <Button
                   size="lg"
                   variant="outline"
