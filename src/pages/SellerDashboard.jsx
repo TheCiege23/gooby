@@ -129,6 +129,21 @@ export default function SellerDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="analytics">
+          {store ? (
+            <AnalyticsPanel products={products} />
+          ) : (
+            <div className="text-center py-16">
+              <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900">No store yet</h3>
+              <p className="text-gray-500 mt-2 mb-6">Set up your store to view analytics</p>
+              <Button onClick={() => setActiveTab("store")} className="bg-blue-600 hover:bg-blue-700">
+                Set Up Store
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+
         <TabsContent value="products">
           <MyProductsList store={store} onStoreNeeded={() => setActiveTab("store")} />
         </TabsContent>
