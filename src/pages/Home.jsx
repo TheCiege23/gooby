@@ -20,6 +20,7 @@ import StoreCard from "@/components/ui/StoreCard";
 import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
 import NearbyClosure from "@/components/buyer/NearbyClosure";
 import BetaSignupForm from "@/components/buyer/BetaSignupForm";
+import GoobyWordmark from "@/components/brand/GoobyWordmark";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,6 +86,7 @@ export default function Home() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-32">
           <div className="max-w-3xl">
+            <div className="mb-4"><GoobyWordmark large /></div>
             <Badge className="bg-white/20 text-white hover:bg-white/30 mb-6">
               <Sparkles className="w-3 h-3 mr-1" />
               Save up to 90% on amazing deals
