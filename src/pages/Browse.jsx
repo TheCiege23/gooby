@@ -89,11 +89,7 @@ export default function Browse() {
     },
   });
 
-  const categories = [
-    { label: "All Categories", value: "" },
-    { label: "Clothing & Fashion", value: "clothing" },
-    { label: "Electronics", value: "electronics" },
-  ];
+  const categories = [{ label: "All Categories", value: "" }, ...EXTENDED_CATEGORIES];
 
   const calculateDistance = (lat, lng) => {
     if (!lat || !lng) return Infinity;
