@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import ProductCard from "@/components/ui/ProductCard";
+import StoreMessageButton from "@/components/store/StoreMessageButton";
 
 export default function StoreProfile() {
   const urlParams = new URLSearchParams(window.location.search);
