@@ -389,12 +389,20 @@ export default function MyStore() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>State</Label>
-                <Input
-                  value={storeData.state}
-                  onChange={(e) => setStoreData(prev => ({ ...prev, state: e.target.value }))}
-                  placeholder="State"
-                />
+                <Label>State *</Label>
+                <Select
+                  value={storeData.state || undefined}
+                  onValueChange={(value) => setStoreData(prev => ({ ...prev, state: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TARGET_STATES.map((stateCode) => (
+                      <SelectItem key={stateCode} value={stateCode}>{stateCode}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Zip Code</Label>
