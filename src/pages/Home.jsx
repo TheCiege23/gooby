@@ -63,12 +63,12 @@ export default function Home() {
   const categories = [
     { name: "Clothing", icon: "👕", value: "clothing" },
     { name: "Electronics", icon: "📱", value: "electronics" },
-    { name: "Furniture", icon: "🪑", value: "furniture" },
+    { name: "Shoes", icon: "👟", value: "shoes" },
+    { name: "Accessories", icon: "👜", value: "accessories" },
+    { name: "Food", icon: "🍎", value: "food" },
     { name: "Home Goods", icon: "🏠", value: "home_goods" },
-    { name: "Sports", icon: "⚽", value: "sports" },
-    { name: "Books", icon: "📚", value: "books" },
     { name: "Jewelry", icon: "💎", value: "jewelry" },
-    { name: "Toys", icon: "🧸", value: "toys" },
+    { name: "Other", icon: "🛍️", value: "other" },
   ];
 
   const handleSearch = (e) => {
@@ -256,7 +256,7 @@ export default function Home() {
               Be First in Your Area
             </h2>
             <p className="text-lg text-gray-600">
-              Join our exclusive beta program in Sayreville, NJ and be among the first to discover incredible deals from closing stores.
+              Join our free beta and discover incredible closing-store deals across NY, NJ, CT, and PA.
             </p>
           </div>
 
@@ -288,7 +288,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white/10 rounded-full px-8"
+                  className="border-white bg-transparent text-white hover:bg-white/15 rounded-full px-8"
                   onClick={() => setReportOpen(true)}
                 >
                   <Flag className="w-5 h-5 mr-2" />
