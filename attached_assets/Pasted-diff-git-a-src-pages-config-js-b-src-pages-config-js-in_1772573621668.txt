@@ -1,0 +1,73 @@
+diff --git a/src/pages.config.js b/src/pages.config.js
+index e2f8418b82800677f7c36067e60b6adb2d556dbc..287f6ae15c354dd86900774a12a8728406d60c87 100644
+--- a/src/pages.config.js
++++ b/src/pages.config.js
+@@ -26,65 +26,67 @@
+  * 
+  * Example with Layout (wraps all pages):
+  *
+  *   import Home from './pages/Home';
+  *   import Settings from './pages/Settings';
+  *   import __Layout from './Layout.jsx';
+  *
+  *   export const PAGES = {
+  *       "Home": Home,
+  *       "Settings": Settings,
+  *   }
+  *
+  *   export const pagesConfig = {
+  *       mainPage: "Home",
+  *       Pages: PAGES,
+  *       Layout: __Layout,
+  *   };
+  *
+  * To change the main page from HomePage to Dashboard, use find_replace:
+  *   Old: mainPage: "HomePage",
+  *   New: mainPage: "Dashboard",
+  *
+  * The mainPage value must match a key in the PAGES object exactly.
+  */
+ import AdminImports from './pages/AdminImports';
++import AdminPanel from './pages/AdminPanel';
+ import Browse from './pages/Browse';
+ import DealAlerts from './pages/DealAlerts';
+ import Home from './pages/Home';
+ import Landing from './pages/Landing';
+ import MapView from './pages/MapView';
+ import MyProducts from './pages/MyProducts';
+ import MyStore from './pages/MyStore';
+ import ProductDetail from './pages/ProductDetail';
+ import Recommendations from './pages/Recommendations';
+ import SavedDeals from './pages/SavedDeals';
+ import SellerDashboard from './pages/SellerDashboard';
+ import Settings from './pages/Settings';
+ import StoreProfile from './pages/StoreProfile';
+ import Terms from './pages/Terms';
+ import __Layout from './Layout.jsx';
+ 
+ 
+ export const PAGES = {
+     "AdminImports": AdminImports,
++    "AdminPanel": AdminPanel,
+     "Browse": Browse,
+     "DealAlerts": DealAlerts,
+     "Home": Home,
+     "Landing": Landing,
+     "MapView": MapView,
+     "MyProducts": MyProducts,
+     "MyStore": MyStore,
+     "ProductDetail": ProductDetail,
+     "Recommendations": Recommendations,
+     "SavedDeals": SavedDeals,
+     "SellerDashboard": SellerDashboard,
+     "Settings": Settings,
+     "StoreProfile": StoreProfile,
+     "Terms": Terms,
+ }
+ 
+ export const pagesConfig = {
+     mainPage: "Home",
+     Pages: PAGES,
+     Layout: __Layout,
+ };
+\ No newline at end of file
