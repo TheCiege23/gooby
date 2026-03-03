@@ -1,10 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-// Focus geographies + retail categories for GOOBY rollout
 const TARGET_STATES = new Set(["NY", "NJ", "CT", "PA"]);
 const PRIORITY_CATEGORIES = new Set(["clothing", "electronics", "shoes", "accessories", "food"]);
 
-const normalizeCategory = (value = "") => {
+const normalizeCategory = (value) => {
   const c = String(value || "").trim().toLowerCase();
   if (["apparel", "fashion"].includes(c)) return "clothing";
   if (["shoe", "footwear", "sneakers"].includes(c)) return "shoes";
@@ -69,7 +68,10 @@ Deno.serve(async (req) => {
         return { ...p, _score: score, _normalizedCategory: normalizedCategory };
       }).sort((a, b) => b._score - a._score).slice(0, 5);
 
-      if (scored.length === 0) { skipped++; continue; }
+      if (scored.length === 0) { 
+        skipped++; 
+        continue; 
+      }
 
       const lines = scored.map((p, i) => {
         const store = storeMap[p.store_id];
