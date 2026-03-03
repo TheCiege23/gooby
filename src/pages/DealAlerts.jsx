@@ -31,7 +31,6 @@ import {
   Trash2, 
   Loader2, 
   MapPin,
-  Tag,
   Percent
 } from "lucide-react";
 
