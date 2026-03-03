@@ -19,7 +19,13 @@ export default function Landing() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-white to-blue-50">
       <section className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <div className="mb-4"><GoobyWordmark large className="justify-center" /></div>
+        <div className="mb-12 flex justify-center">
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69a300f6b5fff3cc73e48948/1d684a5ed_grok-image-65c74a1b-becc-4921-b316-b80dfc9dd896.png"
+            alt="GOOBY"
+            className="h-48 w-auto object-contain"
+          />
+        </div>
         <p className="text-lg text-gray-600 mb-8">
           Discover closing-store deals in NY, NJ, CT, and PA. Search by zip code, browse by category,
           and save on clothing, electronics, shoes, accessories, and food.
