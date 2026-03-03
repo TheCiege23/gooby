@@ -27,6 +27,7 @@ import {
   Image,
   Package
 } from "lucide-react";
+import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory, isTargetState } from "@/components/marketConfig";
 
 export default function MyStore() {
   const [user, setUser] = useState(null);
