@@ -323,7 +323,7 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle>Become a Seller</CardTitle>
                 <CardDescription>
-                  List your store's inventory and reach thousands of deal-seekers
+                  List your NY/NJ/CT/PA store inventory and reach local deal-seekers
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
