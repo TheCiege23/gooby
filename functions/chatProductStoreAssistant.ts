@@ -8,6 +8,36 @@ function matchesLocationText(value, locationHint) {
   return haystack.includes(locationHint.toLowerCase());
 }
 
+
+async function askXAIIfConfigured(prompt: string) {
+  const apiKey = Deno.env.get("XAI_API_KEY") || Deno.env.get("GROK_API_KEY");
+  if (!apiKey) return null;
+
+  try {
+    const res = await fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "grok-2-latest",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) return null;
+    return JSON.parse(content);
+  } catch (_) {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -79,45 +109,58 @@ Deno.serve(async (req) => {
         discount_range: s.discount_range,
       }));
 
-    const llm = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `You are GOOBY's shopping assistant.
+    const prompt = `You are GOOBY's shopping assistant.
 
 Rules:
-- Only answer using products/stores in the provided context.
+- Only answer using products/stores from the provided context JSON.
 - If user asks outside scope, politely say you can only help with listed products and stores.
 - Prioritize recommendations by user behavior: recently viewed, saved, preferred categories.
 - If locationHint is provided, prioritize items in that area.
+- Return strict JSON with fields: answer, recommendations.
 
 User question: ${question}
 Location hint: ${locationHint || "(none)"}
 
-Return concise helpful guidance and recommendations.`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          answer: { type: "string" },
-          recommendations: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                type: { type: "string", enum: ["product", "store"] },
-                id: { type: "string" },
-                name: { type: "string" },
-                reason: { type: "string" },
+Stores context (max 50):
+${JSON.stringify(storeContext)}
+
+Products context (max 80):
+${JSON.stringify(productContext)}`;
+
+    let llm = await askXAIIfConfigured(prompt);
+
+    if (!llm) {
+      llm = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            answer: { type: "string" },
+            recommendations: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  type: { type: "string", enum: ["product", "store"] },
+                  id: { type: "string" },
+                  name: { type: "string" },
+                  reason: { type: "string" },
+                },
+                required: ["type", "id", "name"],
               },
-              required: ["type", "id", "name"],
             },
           },
+          required: ["answer"],
         },
-        required: ["answer"],
-      },
-    });
+      });
+    }
 
     return Response.json({
       answer: llm?.answer || "I can help with products and stores currently listed on GOOBY.",
       recommendations: llm?.recommendations || [],
       context_counts: { stores: storeContext.length, products: productContext.length },
+      model_source: llm ? (Deno.env.get("XAI_API_KEY") || Deno.env.get("GROK_API_KEY") ? "xai_or_core" : "core") : "core",
     });
   } catch (error) {
     console.error('chatProductStoreAssistant error:', error.message);
