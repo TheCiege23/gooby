@@ -32,7 +32,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
 import AIMatchPanel from "@/components/buyer/AIMatchPanel";
 import ReportClosureModal from "@/components/crowdsource/ReportClosureModal";
-import { EXTENDED_CATEGORIES, normalizeCategory, isTargetState } from "@/components/marketConfig";
+import { EXTENDED_CATEGORIES, TARGET_STATES, normalizeCategory, isTargetState } from "@/components/marketConfig";
 
 export default function Browse() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -89,7 +89,15 @@ export default function Browse() {
     },
   });
 
-  const categories = [{ label: "All Categories", value: "" }, ...EXTENDED_CATEGORIES];
+  const { data: aiClosures = [] } = useQuery({
+    queryKey: ['ai-closures'],
+    queryFn: async () => {
+      const rows = await base44.entities.ImportedStore.filter({ status: "approved" }, "-created_date", 100);
+      return rows.filter((row) => isTargetState(row.state));
+    },
+  });
+
+  const categories = [{ label: "All Categories", value: "all" }, ...EXTENDED_CATEGORIES];
 
   const calculateDistance = (lat, lng) => {
     if (!lat || !lng) return Infinity;
@@ -106,7 +114,7 @@ export default function Browse() {
       product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = !selectedCategory || normalizeCategory(product.category) === selectedCategory;
+    const matchesCategory = selectedCategory === "all" || normalizeCategory(product.category) === selectedCategory;
     
     const matchesPrice = product.sale_price >= priceRange[0] && product.sale_price <= priceRange[1];
     
@@ -123,7 +131,7 @@ export default function Browse() {
       store?.zip_code?.includes(loc);
 
     // State filter
-    const matchesState = !selectedState || store?.state === selectedState;
+    const matchesState = selectedState === "all" || store?.state === selectedState;
     const matchesTargetState = isTargetState(store?.state);
 
     return matchesSearch && matchesCategory && matchesPrice && matchesDiscount && matchesLocation && matchesState && matchesTargetState;
@@ -150,7 +158,7 @@ export default function Browse() {
       store.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       store.city?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = !selectedCategory || normalizeCategory(store.category) === selectedCategory;
+    const matchesCategory = selectedCategory === "all" || normalizeCategory(store.category) === selectedCategory;
 
     const loc = locationFilter.toLowerCase();
     const matchesLocation = !locationFilter ||
@@ -158,7 +166,7 @@ export default function Browse() {
       store.state?.toLowerCase().includes(loc) ||
       store.zip_code?.includes(loc);
 
-    const matchesState = !selectedState || store.state === selectedState;
+    const matchesState = selectedState === "all" || store.state === selectedState;
     const matchesTargetState = isTargetState(store.state);
 
     return matchesSearch && matchesCategory && matchesLocation && matchesState && matchesTargetState;
