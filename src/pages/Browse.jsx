@@ -109,6 +109,11 @@ export default function Browse() {
     return R * c;
   };
 
+  const storeMap = stores.reduce((acc, store) => {
+    acc[store.id] = store;
+    return acc;
+  }, {});
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || 
       product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -177,11 +182,6 @@ export default function Browse() {
     if (sortBy === 'proximity') return a.distance - b.distance;
     return 0;
   });
-
-  const storeMap = stores.reduce((acc, store) => {
-    acc[store.id] = store;
-    return acc;
-  }, {});
 
   const handleSaveProduct = async (productId) => {
     if (!user) return;
