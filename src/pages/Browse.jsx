@@ -83,7 +83,10 @@ export default function Browse() {
 
   const { data: stores = [], isLoading: loadingStores } = useQuery({
     queryKey: ['stores'],
-    queryFn: () => base44.entities.Store.filter({ is_active: true }),
+    queryFn: async () => {
+      const rows = await base44.entities.Store.filter({ is_active: true });
+      return rows.filter((store) => isTargetState(store.state));
+    },
   });
 
   const categories = [
