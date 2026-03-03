@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Sparkles } from "lucide-react";
 
 export default function Landing() {
   const [zipCode, setZipCode] = useState("");
@@ -27,6 +27,11 @@ export default function Landing() {
             className="h-48 w-auto object-contain"
           />
         </div>
+        <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
+          <Sparkles className="w-4 h-4" />
+          AI-powered closure discovery and deal matching
+        </div>
+
         <p className="text-lg text-gray-600 mb-8">
           Discover closing-store deals in NY, NJ, CT, and PA. Search by zip code, browse by category,
           and save on clothing, electronics, shoes, accessories, and food.
@@ -53,9 +58,15 @@ export default function Landing() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
             className="bg-gray-900 hover:bg-black"
-            onClick={() => base44.auth.redirectToLogin(window.location.origin + createPageUrl("Home"))}
+            onClick={() => window.location.assign(`/signup?from=${encodeURIComponent(window.location.origin + createPageUrl("Home"))}`)}
           >
             Sign up free
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => window.location.assign(`/login?from=${encodeURIComponent(window.location.origin + createPageUrl("Home"))}`)}
+          >
+            Sign in
           </Button>
           <Link to={createPageUrl("Terms")}>
             <Button variant="outline">Terms & Conditions</Button>
