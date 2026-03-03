@@ -476,7 +476,7 @@ export default function MyStore() {
 
         <Button 
           onClick={handleSave} 
-          disabled={saving || !storeData.name || !storeData.address || !storeData.city}
+          disabled={saving || !storeData.name || !storeData.address || !storeData.city || !storeData.state}
           className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
         >
           {saving ? (
