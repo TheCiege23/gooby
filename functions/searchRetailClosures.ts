@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
           prompt: `Search for: "${query}"
 
 Find specific retail store closures announced or happening in 2026 in ${region || "NY/NJ/CT/PA"}.
+Use web search grounded in Google-indexed sources and federal/state sources when available (SEC EDGAR, bankruptcy dockets, state business registries, reputable local news).
 
 For each store closure you find, extract:
 - Store/brand name (e.g. "Macy's", "Gap", "Bed Bath & Beyond")
