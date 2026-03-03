@@ -55,7 +55,7 @@ For each store closure you find, extract:
 - Closing date if mentioned (YYYY-MM-DD format)
 - Source/context snippet (brief, 1 sentence max)
 
-Return ONLY stores confirmed to be closing or already closed in 2026. Do NOT include speculative or rumored closures unless from a credible source. Do NOT include stores outside NY, NJ, CT, PA.`,
+Return ONLY stores confirmed to be closing or already closed in 2026. Do NOT include speculative or rumored closures unless from a credible source. Prefer results with explicit source references. Do NOT include stores outside NY, NJ, CT, PA.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
