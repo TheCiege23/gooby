@@ -1,12 +1,15 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Store, Package, Users, AlertTriangle, Clock3, CheckCircle2, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ShieldCheck, Store, Package, Users, AlertTriangle, Clock3, CheckCircle2, ArrowRight, Lock } from "lucide-react";
+
+const ADMIN_PASSWORD = "admin123";
 
 function StatCard({ icon: Icon, label, value, hint, tone = "blue" }) {
   const tones = {
@@ -29,12 +32,7 @@ function StatCard({ icon: Icon, label, value, hint, tone = "blue" }) {
   );
 }
 
-export default function AdminPanel() {
-  const { data: me } = useQuery({
-    queryKey: ["admin-me"],
-    queryFn: () => base44.auth.me(),
-  });
-
+function AdminDashboard() {
   const { data: stores = [] } = useQuery({
     queryKey: ["admin-stores"],
     queryFn: () => base44.entities.Store.list("-created_date", 1000),
@@ -60,16 +58,6 @@ export default function AdminPanel() {
       }
     },
   });
-
-  if (me && me.role !== "admin") {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <ShieldCheck className="w-10 h-10 mx-auto text-gray-300 mb-3" />
-        <h1 className="text-2xl font-bold text-gray-900">Admin access only</h1>
-        <p className="text-gray-600 mt-2">You need an admin account to view this panel.</p>
-      </div>
-    );
-  }
 
   const pendingImports = importedStores.filter((s) => s.status === "pending").length;
   const approvedImports = importedStores.filter((s) => s.status === "approved").length;
@@ -150,4 +138,58 @@ export default function AdminPanel() {
       </div>
     </div>
   );
+}
+
+export default function AdminPanel() {
+  const [unlocked, setUnlocked] = useState(false);
+  const [pwdInput, setPwdInput] = useState("");
+  const [pwdError, setPwdError] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (sessionStorage.getItem("gooby_admin_unlocked") === "true") {
+      setUnlocked(true);
+    }
+  }, []);
+
+  const handleUnlock = (e) => {
+    e.preventDefault();
+    if (pwdInput === ADMIN_PASSWORD) {
+      setUnlocked(true);
+      sessionStorage.setItem("gooby_admin_unlocked", "true");
+      setPwdError(false);
+    } else {
+      setPwdError(true);
+    }
+  };
+
+  if (!unlocked) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
+        <Card className="max-w-sm w-full p-6">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-blue-100 mx-auto mb-3 flex items-center justify-center">
+              <Lock className="w-6 h-6 text-blue-600" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900">Admin Access</h1>
+            <p className="text-sm text-gray-500 mt-1">Enter the admin password to continue.</p>
+          </div>
+          <form onSubmit={handleUnlock} className="space-y-3">
+            <Input
+              type="password"
+              placeholder="Password"
+              value={pwdInput}
+              onChange={(e) => { setPwdInput(e.target.value); setPwdError(false); }}
+              autoFocus
+            />
+            {pwdError && <p className="text-sm text-red-600">Incorrect password.</p>}
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Unlock</Button>
+            <Button type="button" variant="ghost" className="w-full" onClick={() => navigate(-1)}>Go Back</Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
+  return <AdminDashboard />;
 }
