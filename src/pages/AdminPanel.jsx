@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -141,16 +141,10 @@ function AdminDashboard() {
 }
 
 export default function AdminPanel() {
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("gooby_admin_unlocked") === "true");
   const [pwdInput, setPwdInput] = useState("");
   const [pwdError, setPwdError] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (sessionStorage.getItem("gooby_admin_unlocked") === "true") {
-      setUnlocked(true);
-    }
-  }, []);
 
   const handleUnlock = (e) => {
     e.preventDefault();

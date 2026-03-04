@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   MapPin,
   Download,
@@ -20,6 +22,7 @@ import {
   Database,
   Search,
   Landmark,
+  Lock,
 } from "lucide-react";
 import FlaggedProductsPanel from "@/components/admin/FlaggedProductsPanel";
 import SellerVerificationPanel from "@/components/admin/SellerVerificationPanel";
@@ -44,7 +47,12 @@ const BUSINESS_STATUS_COLORS = {
   OPERATIONAL: "bg-green-100 text-green-700",
 };
 
+const ADMIN_PASSWORD = "admin123";
+
 export default function AdminImports() {
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("gooby_admin_unlocked") === "true");
+  const [pwdInput, setPwdInput] = useState("");
+  const [pwdError, setPwdError] = useState(false);
   const [user, setUser] = useState(null);
   const [activeSection, setActiveSection] = useState("imports");
   const [statusFilter, setStatusFilter] = useState("pending");
@@ -57,18 +65,17 @@ export default function AdminImports() {
   const [selectedStores, setSelectedStores] = useState(new Set());
   const [bulkAction, setBulkAction] = useState(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u?.role !== "admin") {
-        window.location.href = "/";
-      }
-    });
-  }, []);
+  useEffect(() => {
+    if (unlocked) {
+      base44.auth.me().then(u => setUser(u)).catch(() => setUser({ role: "guest" }));
+    }
+  }, [unlocked]);
 
   const { data: importedStores = [], isLoading } = useQuery({
     queryKey: ["imported-stores", statusFilter, stateFilter, scoreFilter, nearbyFilter],
+    enabled: unlocked,
     queryFn: async () => {
       let stores;
       if (statusFilter === "all") {
@@ -160,6 +167,45 @@ export default function AdminImports() {
     setSendingEmail(null);
     queryClient.invalidateQueries({ queryKey: ["imported-stores"] });
   };
+
+  const handleUnlock = (e) => {
+    e.preventDefault();
+    if (pwdInput === ADMIN_PASSWORD) {
+      setUnlocked(true);
+      sessionStorage.setItem("gooby_admin_unlocked", "true");
+      setPwdError(false);
+    } else {
+      setPwdError(true);
+    }
+  };
+
+  if (!unlocked) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
+        <Card className="max-w-sm w-full p-6">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-blue-100 mx-auto mb-3 flex items-center justify-center">
+              <Lock className="w-6 h-6 text-blue-600" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900">Admin Access</h1>
+            <p className="text-sm text-gray-500 mt-1">Enter the admin password to continue.</p>
+          </div>
+          <form onSubmit={handleUnlock} className="space-y-3">
+            <Input
+              type="password"
+              placeholder="Password"
+              value={pwdInput}
+              onChange={(e) => { setPwdInput(e.target.value); setPwdError(false); }}
+              autoFocus
+            />
+            {pwdError && <p className="text-sm text-red-600">Incorrect password.</p>}
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Unlock</Button>
+            <Button type="button" variant="ghost" className="w-full" onClick={() => navigate(-1)}>Go Back</Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
