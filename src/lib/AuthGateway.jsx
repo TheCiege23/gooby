@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createPageUrl } from "@/utils";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, UserPlus, ArrowLeft } from "lucide-react";
 
 const initialSignup = {
   fullName: "",
@@ -70,6 +70,14 @@ export default function AuthGateway({ mode = "login" }) {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
       <Card className="max-w-lg w-full p-6 border-blue-100">
+        <Button
+          type="button"
+          variant="ghost"
+          className="mb-4 text-gray-500 hover:text-gray-800 gap-1 px-2"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4" /> Back
+        </Button>
         <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-full bg-blue-100 mx-auto mb-3 flex items-center justify-center">
             {mode === "signup" ? <UserPlus className="w-6 h-6 text-blue-600" /> : <LogIn className="w-6 h-6 text-blue-600" />}

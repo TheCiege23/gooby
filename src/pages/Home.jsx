@@ -14,7 +14,8 @@ import {
   Sparkles, 
   ArrowRight,
   TrendingDown,
-  Flag
+  Flag,
+  Shield
 } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import StoreCard from "@/components/ui/StoreCard";
@@ -105,8 +106,17 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-32">
           <div className="max-w-3xl">
             <div className="mb-4"><GoobyWordmark large /></div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-sm font-semibold mb-3">
-              <Sparkles className="w-4 h-4" /> Built with GOOBY AI: smart deal matching + closure discovery
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-sm font-semibold">
+                <Sparkles className="w-4 h-4" /> Built with GOOBY AI: smart deal matching + closure discovery
+              </div>
+              {user?.role === "admin" && (
+                <Link to={createPageUrl("AdminPanel")}>
+                  <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white rounded-full gap-1">
+                    <Shield className="w-4 h-4" /> Admin Panel
+                  </Button>
+                </Link>
+              )}
             </div>
             <Badge className="bg-white/20 text-white hover:bg-white/30 mb-6">
               <Sparkles className="w-3 h-3 mr-1" />
